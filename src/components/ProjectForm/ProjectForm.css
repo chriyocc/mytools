@@ -1,0 +1,39 @@
+.project-form {
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-control {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+  font: inherit;
+}
+
+.upload-section {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.file-name {
+  color: #28a745;
+  font-size: 0.9rem;
+}
