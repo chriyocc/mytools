@@ -3,6 +3,8 @@ import type { Project } from '../../types/Project';
 import Modal from '../../components/Modal/Modal';
 import ProjectForm from '../../components/ProjectForm/ProjectForm';
 import ProjectCard from '../../components/ProjectCard/ProjectCard';
+import { toast } from 'react-hot-toast';
+import { useConfirm } from '../../components/ConfirmModal/ConfirmModalContext';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -10,6 +12,8 @@ const Dashboard = () => {
     { id: 1, slug:'project-a', title: 'Project A', date: '2025-08', description: 'Description A', image: '', markdown_content: '', tool_icon1: 'typescript', tool_icon2: 'react', created_at: '2025-08-01', updated_at: '2025-08-01' },
     { id: 2, slug:'project-b', title: 'Project B', date: '2025-11', description: 'Description B', image: '', markdown_content: '', tool_icon1: 'typescript', tool_icon2: 'react', created_at: '2025-08-01', updated_at: '2025-08-01' },
   ]);
+
+  const { confirm } = useConfirm();
 
   const [formData, setFormData] = useState<Project>({
     title: '',
@@ -70,7 +74,7 @@ const Dashboard = () => {
     });
 
     if (hasEmptyRequired) {
-      alert('Please fill in all required fields before submitting.');
+      toast.error('Please fill in all required fields before submitting.');
       return;
     }
 
@@ -79,6 +83,7 @@ const Dashboard = () => {
     } else {
       setProjects([...projects, { ...formData, id: Date.now() }]);
     }
+    toast.success(`Project ${formData.id !== undefined ? 'updated' : 'added'} successfully!`);
 
     // Reset form and close modal
     setFormData({
@@ -91,6 +96,7 @@ const Dashboard = () => {
       tool_icon2: '',
       image: '',
     });
+
     setIsModalOpen(false);
   };
 
@@ -101,8 +107,18 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setProjects(projects.filter((proj) => proj.id !== id));
+  const handleDelete = async (id: number) => {
+    const confirmed = await confirm({
+      title: 'Delete Item',
+      message: 'Are you sure you want to delete this item?',
+      confirmText: 'Delete',
+      type: 'danger',
+    });
+
+    if (confirmed) {
+      setProjects(projects.filter((proj) => proj.id !== id));//call API
+      toast.success('Project deleted');
+    }
   };
 
   const handleAddNew = () => {
