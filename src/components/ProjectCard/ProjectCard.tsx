@@ -1,6 +1,7 @@
 import React from 'react';
 import { type Project } from '../../types/Project';
 import './ProjectCard.css';
+import iconMap from '../IconSelector/iconMap';
 
 interface ProjectCardProps {
   project: Project & { id: number };
@@ -19,22 +20,52 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
           </svg>
         </button>
       </div>
-      <p className="project-description">{project.description}</p>
-      <p className="project-tech">
-        <strong>Tech Stack:</strong> {project.techStack}
-      </p>
-      {project.image && (
-        <img 
-          src={project.image} 
-          alt={project.title}
-          className="project-image"
-        />
+      <p className="project-info">{project.description}</p>
+      {project.tool_icon1 && (
+        <p className='project-info'>
+          <strong>Icon 1:</strong>&nbsp;<span dangerouslySetInnerHTML={{ __html: iconMap[project.tool_icon1] }} />
+        </p>
       )}
-      <div className="project-actions">
+      {project.tool_icon2 && (
+        <p className='project-info'>
+          <strong>Icon 2:</strong>&nbsp;<span dangerouslySetInnerHTML={{ __html: iconMap[project.tool_icon2] }} />
+        </p>
+      )}
+      {project.date && (
+        <div className="project-info">
+          <strong>Project Date:</strong>&nbsp;{project.date && new Date(project.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+        </div>
+      )}
+      <div>
+        {project.image && (
+          <img
+            src={project.image}
+            alt={project.title}
+            className="project-image"
+          />
+        )}
+      </div>
+       {project.markdown_content && (
+        <p className='project-info'>
+          ✓ Markdown File Uploaded
+        </p>
+      )}
+      <div className="project-bottomBar">
+        <div className='project-dateWrapper'>
+          <div className="db-date">
+            Created_at: {project.date && new Date(project.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+          </div>
+          <div className="db-date">
+            Updated_at: {project.date && new Date(project.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+        <div className="project-actions">
         <button onClick={() => onEdit(project)} className="btn btn-primary">
           Edit
         </button>
       </div>
+      </div>
+      
     </div>
   );
 };

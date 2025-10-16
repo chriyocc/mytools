@@ -1,5 +1,5 @@
 .project-form {
-  width: 100%;
+  min-width: 30rem;
 }
 
 .form-group {
@@ -23,6 +23,7 @@
 
 textarea.form-control {
   min-height: 100px;
+  max-height: fit-content;
   resize: vertical;
   font: inherit;
 }
@@ -36,4 +37,10 @@ textarea.form-control {
 .file-name {
   color: #28a745;
   font-size: 0.9rem;
+  margin-bottom: 5px;
 }
+
+input[type="month"] {
+  font: inherit;
+}
+

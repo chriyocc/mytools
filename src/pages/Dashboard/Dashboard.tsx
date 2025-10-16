@@ -7,15 +7,18 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const [projects, setProjects] = useState<(Project & { id: number })[]>([
-    { id: 1, title: 'Project A', description: 'Description A', techStack: 'React, Node.js' },
-    { id: 2, title: 'Project B', description: 'Description B', techStack: 'Vue, Firebase' },
+    { id: 1, slug:'project-a', title: 'Project A', date: '2025-08', description: 'Description A', image: '', markdown_content: '', tool_icon1: 'typescript', tool_icon2: 'react', created_at: '2025-08-01', updated_at: '2025-08-01' },
+    { id: 2, slug:'project-b', title: 'Project B', date: '2025-11', description: 'Description B', image: '', markdown_content: '', tool_icon1: 'typescript', tool_icon2: 'react', created_at: '2025-08-01', updated_at: '2025-08-01' },
   ]);
 
   const [formData, setFormData] = useState<Project>({
     title: '',
+    slug: '',
+    date: '',
     description: '',
-    techStack: '',
-    markdown: '',
+    markdown_content: '',
+    tool_icon1: '',
+    tool_icon2: '',
     image: '',
   });
 
@@ -23,10 +26,15 @@ const Dashboard = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'title') {
+      const slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+      setFormData({ ...formData, title: value, slug });
+      return;
+    }
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileUpload = (type: 'markdown' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (type: 'markdown_content' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -36,7 +44,7 @@ const Dashboard = () => {
       setFormData({ ...formData, [type]: content });
     };
 
-    if (type === 'markdown') {
+    if (type === 'markdown_content') {
       reader.readAsText(file);
     } else {
       reader.readAsDataURL(file);
@@ -45,14 +53,48 @@ const Dashboard = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const requiredFields: (keyof Project)[] = [
+      'title',
+      'date',
+      'description',
+      'markdown_content',
+      'tool_icon1',
+      'image',
+    ];
+
+    // Validate required fields safely
+    const hasEmptyRequired = requiredFields.some((field) => {
+      const value = formData[field];
+      return typeof value !== 'string' || value.trim() === ''; // Ensure value is a string before calling trim(), as ID can be number or undefined
+    });
+
+    if (hasEmptyRequired) {
+      alert('Please fill in all required fields before submitting.');
+      return;
+    }
+
     if (formData.id !== undefined) {
       setProjects(projects.map((proj) => (proj.id === formData.id ? { ...formData, id: proj.id } : proj)));
     } else {
       setProjects([...projects, { ...formData, id: Date.now() }]);
     }
-    setFormData({ title: '', description: '', techStack: '', markdown: '', image: '' });
+
+    // Reset form and close modal
+    setFormData({
+      title: '',
+      slug: '',
+      date: '',
+      description: '',
+      markdown_content: '',
+      tool_icon1: '',
+      tool_icon2: '',
+      image: '',
+    });
     setIsModalOpen(false);
   };
+
+
 
   const handleEdit = (project: Project & { id: number }) => {
     setFormData(project);
@@ -64,7 +106,7 @@ const Dashboard = () => {
   };
 
   const handleAddNew = () => {
-    setFormData({ title: '', description: '', techStack: '', markdown: '', image: '' });
+    setFormData({  title: '', slug:'', date:'', description: '', tool_icon1: '', markdown_content: '', image: '' });
     setIsModalOpen(true);
   };
 

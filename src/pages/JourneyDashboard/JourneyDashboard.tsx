@@ -2,9 +2,11 @@ import { useState } from 'react';
 import type { Journey } from '../../types/Journey';
 import Modal from '../../components/Modal/Modal';
 import JourneyCard from '../../components/JourneyCard/JourneyCard';
+import JourneyForm from '../../components/JourneyForm/JourneyForm';
 import './JourneyDashboard.css';
 
 const JourneyDashboard = () => {
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
   const [journeys, setJourneys] = useState<(Journey & { id: number })[]>([
     { 
       id: 1, 
@@ -95,22 +97,26 @@ const JourneyDashboard = () => {
     setIsModalOpen(true);
   };
 
-  // Group journeys by year and month
-  const groupedJourneys = journeys.reduce((groups, journey) => {
-    const date = new Date(journey.date);
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    
-    const key = `${year}-${month}`;
-    if (!groups[key]) {
-      groups[key] = [];
-    }
-    groups[key].push(journey);
-    return groups;
-  }, {} as Record<string, typeof journeys>);
+  // Filter journeys based on selected year
+  const filteredJourneys = selectedYear === 'all' 
+    ? journeys 
+    : journeys.filter(journey => new Date(journey.date).getFullYear() === selectedYear);
 
-  // Sort groups by date (newest first)
-  const sortedGroups = Object.entries(groupedJourneys).sort(([a], [b]) => b.localeCompare(a));
+  // Group and sort the filtered journeys
+  const sortedGroups = Object.entries(
+    filteredJourneys.reduce((groups, journey) => {
+      const date = new Date(journey.date);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      
+      const key = `${year}-${month}`;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(journey);
+      return groups;
+    }, {} as Record<string, typeof journeys>)
+  ).sort(([a], [b]) => b.localeCompare(a));
 
   return (
     <div className="journey-dashboard">
@@ -120,75 +126,47 @@ const JourneyDashboard = () => {
           Add Journey Entry
         </button>
       </div>
+      <div className="year-selector">
+        <button 
+          className={`btn year-btn ${selectedYear === 'all' ? 'active' : ''}`}
+          onClick={() => setSelectedYear('all')}
+        >
+          All Years
+        </button>
+        {[2024, 2025, 2026].map(year => (
+          <button
+            key={year}
+            className={`btn year-btn ${selectedYear === year ? 'active' : ''}`}
+            onClick={() => setSelectedYear(year)}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
 
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         title={formData.id !== undefined ? 'Edit Journey Entry' : 'Add Journey Entry'}
       >
-        <form onSubmit={handleSubmit} className="journey-form">
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
-              id="title"
-              type="text"
-              name="title"
-              placeholder="Enter journey title"
-              value={formData.title}
-              onChange={handleChange}
-              className="form-control"
-              required
-            />
-            <label htmlFor="date">Date</label>
-            <input
-              id="date"
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="form-control"
-              required
-            />
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Enter journey description"
-              value={formData.description}
-              onChange={handleChange}
-              className="form-control"
-              required
-            />
-            <div className='upload-section'>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload('image')}
-                style={{ display: 'none' }}
-                id="image-upload"
-              />
-              <label htmlFor="image-upload" className="btn btn-secondary">
-                {formData.image ? 'Change Image' : 'Upload Image'}
-              </label>
-              {formData.image && <span className="file-name">✓ Image uploaded</span>}
-            </div>
-          </div>
-          <div className="journey-actions">
-            <button type="submit" className="btn btn-primary">
-              {formData.id !== undefined ? 'Update' : 'Add'} Entry
-            </button>
-            <button type="button" className="btn btn-danger" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </button>
-          </div>
-        </form>
+        <JourneyForm
+          formData={formData}
+          onSubmit={handleSubmit}
+          onChange={handleChange}
+          onFileUpload={handleFileUpload}
+          onCancel={() => setIsModalOpen(false)}
+        />
       </Modal>
 
       <div className="journey-timeline">
-        {journeys.length === 0 ? (
+        {filteredJourneys.length === 0 ? (
           <div className="empty-state">
-            <h2>No Journey Entries Yet</h2>
-            <p>Start documenting your journey by adding your first entry!</p>
+            <h2>No Journey Entries {selectedYear !== 'all' ? `for ${selectedYear}` : ''}</h2>
+            <p>
+              {selectedYear === 'all' 
+                ? 'Start documenting your journey by adding your first entry!'
+                : `No entries found for ${selectedYear}. Try selecting a different year or add a new entry.`}
+            </p>
             <button className="btn btn-primary" onClick={handleAddNew}>
               Add Your First Entry
             </button>

@@ -1,13 +1,14 @@
 import React, { useRef } from 'react';
 import { type Project } from '../../types/Project';
 import FileUpload from '../FileUpload/FileUpload';
+import IconSelector from '../IconSelector/IconSelector';
 import './ProjectForm.css';
 
 interface ProjectFormProps {
   formData: Project;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-  onFileUpload: (type: 'markdown' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileUpload: (type: 'markdown_content' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCancel: () => void;
 }
 
@@ -39,35 +40,37 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           onChange={onChange}
           className="form-control"
         />
-        <select
-          name="icon1"
-          value={formData.icon1 || ''}
+
+        <input
+          type="month"
+          name="date"
+          value={formData.date || ''}
           onChange={onChange}
           className="form-control"
-        >
-          <option value="">Select Icon 1</option>
-          <option value="typescript">TypeScript</option>
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="java">Java</option>
-        </select>
-        <select
-          name="icon2"
-          value={formData.icon2 || ''}
+        />
+        {/* {formData.date && (
+          new Date(formData.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })
+        )} */}
+
+
+        <IconSelector
+          name="tool_icon1"
+          value={formData.tool_icon1 || ''}
           onChange={onChange}
-          className="form-control"
-        >
-          <option value="">Select Icon 2</option>
-          <option value="typescript">TypeScript</option>
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="java">Java</option>
-        </select>
+          label="Icon 1"
+        />
+        <IconSelector
+          name="tool_icon2"
+          value={formData.tool_icon2 || ''}
+          onChange={onChange}
+          label="Icon 2"
+        />
+
         <div className='upload-section'>
           <FileUpload
             ref={markdownInputRef}
             accept=".md"
-            onChange={onFileUpload('markdown')}
+            onChange={onFileUpload('markdown_content')}
             label="Markdown"
           />
           <FileUpload
@@ -77,15 +80,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             label="Image"
           />
         </div>
-        {formData.markdown && <span className="file-name">✓ Markdown uploaded</span>}
-        {formData.image && <span className="file-name">✓ Image uploaded</span>}
+        <div>
+          {formData.markdown_content && <div className="file-name">✓ Markdown uploaded</div>}
+          {formData.image && <div className="file-name">✓ Image uploaded</div>}
+        </div>
       </div>
       <div className="project-actions">
-        <button type="submit" className="btn btn-primary">
-          {formData.id !== undefined ? 'Update' : 'Add'} Project
-        </button>
         <button type="button" className="btn btn-danger" onClick={onCancel}>
           Cancel
+        </button>
+        <button type="submit" className="btn btn-primary">
+          {formData.id !== undefined ? 'Update' : 'Add'} Project
         </button>
       </div>
     </form>
