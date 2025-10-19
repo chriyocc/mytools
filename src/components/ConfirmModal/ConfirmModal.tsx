@@ -69,7 +69,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </div>
         <div className="confirm-modal-footer">
             <button 
-              className="btn btn-danger" 
+              className="btn" 
               onClick={onCancel}
               autoFocus
             >

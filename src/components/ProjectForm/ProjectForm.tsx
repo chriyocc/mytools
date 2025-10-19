@@ -1,16 +1,19 @@
 import React, { useRef } from 'react';
-import { type Project } from '../../types/Project';
+import type { Database } from '../../types/database.types';
 import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import './ProjectForm.css';
 
+type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
+
 interface ProjectFormProps {
-  formData: Project;
+  formData: Partial<ProjectInsert>;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onFileUpload: (type: 'markdown_content' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCancel: () => void;
 }
+
 
 const ProjectForm: React.FC<ProjectFormProps> = ({
   formData,
@@ -29,14 +32,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           type="text"
           name="title"
           placeholder="Project Title"
-          value={formData.title}
+          value={formData.title || ''}
           onChange={onChange}
           className="form-control"
         />
         <textarea
           name="description"
           placeholder="Project Description"
-          value={formData.description}
+          value={formData.description || ''}
           onChange={onChange}
           className="form-control"
         />
@@ -81,8 +84,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           />
         </div>
         <div>
-          {formData.markdown_content && <div className="file-name">✓ Markdown uploaded</div>}
-          {formData.image && <div className="file-name">✓ Image uploaded</div>}
+          {formData.markdown_content && <div className="file-name">✓ {formData.markdown_file} uploaded</div>}
+          {formData.image && <div className="file-name">✓ {formData.image_file} uploaded</div>}
         </div>
       </div>
       <div className="project-actions">

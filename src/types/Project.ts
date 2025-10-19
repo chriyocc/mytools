@@ -1,10 +1,12 @@
 export interface Project {
-  id?: number;
+  id?: string;
   slug: string;
   title: string;
   date: string;
   description: string;
-  markdown_content?: string;
+  markdown_file: string;
+  markdown_content: string;
+  image_file: string;
   image: string;
   tool_icon1: string;
   tool_icon2?: string;

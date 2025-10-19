@@ -1,12 +1,14 @@
 import React from 'react';
-import { type Project } from '../../types/Project';
 import './ProjectCard.css';
 import iconMap from '../IconSelector/iconMap';
+import type { Database } from '../../types/database.types';
+
+type ProjectRow = Database['public']['Tables']['projects']['Row'];
 
 interface ProjectCardProps {
-  project: Project & { id: number };
-  onEdit: (project: Project & { id: number }) => void;
-  onDelete: (id: number) => void;
+  project: ProjectRow;
+  onEdit: (project: ProjectRow) => void;
+  onDelete: (id: string) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
@@ -20,7 +22,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
           </svg>
         </button>
       </div>
-      <p className="project-info">{project.description}</p>
+      <p className="project-info">
+        {project.description}
+      </p>
       {project.tool_icon1 && (
         <p className='project-info'>
           <strong>Icon 1:</strong>&nbsp;<span dangerouslySetInnerHTML={{ __html: iconMap[project.tool_icon1] }} />
@@ -33,7 +37,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
       )}
       {project.date && (
         <div className="project-info">
-          <strong>Project Date:</strong>&nbsp;{project.date && new Date(project.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+          <strong>Project Date:</strong>&nbsp; {project.date}
         </div>
       )}
       <div>
@@ -44,10 +48,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             className="project-image"
           />
         )}
+        <p className='project-fileInfo'>
+          ✓ {project.image_file} uploaded
+        </p>
       </div>
        {project.markdown_content && (
-        <p className='project-info'>
-          ✓ Markdown File Uploaded
+        <p className='project-fileInfo'>
+          ✓ {project.markdown_file} uploaded
         </p>
       )}
       <div className="project-bottomBar">
