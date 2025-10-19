@@ -44,6 +44,7 @@
   overflow: hidden;   
   white-space: nowrap;       /* Prevent wrapping to new line */
   align-items: center;
+  margin-bottom: 3px;
 }
 
 .project-image {

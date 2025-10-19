@@ -41,6 +41,13 @@ body {
   opacity: 0.8;
 }
 
+.btn:disabled {
+  background-color: #f1f1f1; /* Light gray background */
+  cursor: not-allowed; /* Change cursor to indicate no interaction */
+  opacity: 0.6; /* Reduce opacity for a faded look */
+}
+
+
 .btn-primary {
   background-color: var(--primary-color);
   color: white;
@@ -55,4 +62,14 @@ body {
   background-color: var(--background-main);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
+}
+
+.btn-underline {
+  background: none;
+  border: none;
+  color: red;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+  text-decoration: underline;
 }

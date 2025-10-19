@@ -37,7 +37,15 @@ textarea.form-control {
 .file-name {
   color: #28a745;
   font-size: 0.9rem;
+
+}
+
+.file-name-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   margin-bottom: 5px;
+  gap: 10px;
 }
 
 input[type="month"] {

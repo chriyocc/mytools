@@ -5,34 +5,46 @@ import ProjectForm from '../../components/ProjectForm/ProjectForm';
 import ProjectCard from '../../components/ProjectCard/ProjectCard';
 import PageLoader from '../../components/PageLoader/PageLoader'
 import { toast } from 'react-hot-toast';
-import { useConfirm } from '../../components/ConfirmModal/ConfirmModalContext';
-import './Dashboard.css';
 import { projectApi } from '../../api/projectApi';
+import { uploadToCloudinary, deleteFromCloudinary } from '../../utils/cloudinary';
+import { readFileAsText } from '../../utils/fileReader';
+import { generateSlug, hasEmptyRequiredFields } from '../../utils/formHelpers';
+import { useConfirm } from '../../utils/ConfirmModalContext.tsx';
+import './Dashboard.css';
+
 
 type ProjectRow = Database['public']['Tables']['projects']['Row'];
 type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
 
-const Dashboard = () => {
+const EMPTY_PROJECT_FORM: Partial<ProjectInsert> = {
+  title: '',
+  slug: '',
+  date: '',
+  description: '',
+  markdown_file: '',
+  markdown_content: '',
+  tool_icon1: '',
+  tool_icon2: '',
+  image_file: '',
+  image: '',
+  image_public_id: '',
+};
 
+const REQUIRED_PROJECT_FIELDS: (keyof ProjectInsert)[] = [
+  'title',
+  'date',
+  'description',
+  'markdown_content',
+  'tool_icon1',
+  'image',
+];
+
+const Dashboard = () => {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { confirm } = useConfirm();
-
-  const [formData, setFormData] = useState<Partial<ProjectInsert>>({
-    title: '',
-    slug: '',
-    date: '',
-    description: '',
-    markdown_file: '',
-    markdown_content: '',
-    tool_icon1: '',
-    tool_icon2: '',
-    image_file: '',
-    image: '',
-    image_public_id: '',
-  });
-
+  const [formData, setFormData] = useState<Partial<ProjectInsert>>(EMPTY_PROJECT_FORM);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     fetchAllProjects();
@@ -51,183 +63,97 @@ const Dashboard = () => {
       setTimeout(() => {
         setIsLoading(false);
       }, 500);
-      
     }
   }
-
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     try {
       const { name, value } = e.target;
+      
       if (name === 'title') {
-        const slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+        const slug = generateSlug(value);
         setFormData({ ...formData, title: value, slug });
         return;
       }
+      
       setFormData({ ...formData, [name]: value });
-    } catch (error) { 
+    } catch (error) {
       console.error('Error updating form field:', error);
       toast.error('Something went wrong while updating the form.');
     }
-    
   };
 
-  function getPublicIdFromUrl(url: string): string | null {
-  try {
-    // Example URL: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/image.jpg
-    const parts = url.split('/upload/');
-    if (parts.length < 2) return null;
-    
-    // Get everything after /upload/
-    const afterUpload = parts[1];
-    
-    // Remove version number (v1234567890/)
-    const withoutVersion = afterUpload.replace(/^v\d+\//, '');
-    
-    // Remove file extension
-    const publicId = withoutVersion.replace(/\.[^/.]+$/, '');
-    
-    return publicId;
-  } catch (error) {
-    console.error('Failed to extract public_id:', error);
-    return null;
-  }
-}
-
   const handleFileUpload = (type: 'markdown_content' | 'image') => async (e: React.ChangeEvent<HTMLInputElement>) => {
-      try {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-        const fileName = file.name;
-        const reader = new FileReader();
+      const fileName = file.name;
 
-        reader.onload = async (event) => {
-          const content = event.target?.result as string;
-
-          if (type === 'markdown_content') {
-            setFormData({
-              ...formData,
-              markdown_content: content,
-              markdown_file: fileName,
-            });
-          } else {
+      if (type === 'markdown_content') {
+        const content = await readFileAsText(file);
+        setFormData({
+          ...formData,
+          markdown_content: content,
+          markdown_file: fileName,
+        });
+        toast.success('Markdown file uploaded successfully!');
+      } else {
+        toast.promise(
+          new Promise(async (resolve, reject) => {
             try {
-              const sigResponse = await fetch('http://localhost:3000/api/signature', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ folder: 'project_imgs' }),
-              });
-
-              const { signature, timestamp, cloudName, apiKey, folder } = await sigResponse.json();
-
-              const sigFormData = new FormData();
-              sigFormData.append('file', file);
-              sigFormData.append('signature', signature);
-              sigFormData.append('timestamp', timestamp.toString());
-              sigFormData.append('api_key', apiKey);
-              sigFormData.append('folder', folder);
-
-              const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-                method: "POST",
-                body: sigFormData,
-              });
-
-              const data = await response.json();
-              console.log('Uploaded directly to Cloudinary:', data.secure_url);
-              toast.success('Image uploaded successfully');
-              setFormData({
-                ...formData,
-                image: data.secure_url, 
-                image_file: fileName,
-                image_public_id: getPublicIdFromUrl(data.secure_url),
-              });
-
+              const { secure_url, public_id } = await uploadToCloudinary(file);
+              resolve({ secure_url, public_id });
             } catch (error) {
-              console.error('Image upload failed:', error);
-              toast.error('Image upload failed. Please try again.');
-              return;
+              reject(error);
             }
-            
+          }),
+          {
+            loading: 'Uploading image...',
+            success: 'Image uploaded successfully!',
+            error: 'Image upload failed. Please try again.',
           }
-        };
-
-        reader.onerror = (err) => {
-          console.error('File reading failed:', err);
-          toast.error('Failed to read file. Please try again.');
-        };
-
-        if (type === 'markdown_content') {
-          reader.readAsText(file); // Reads the file as plain text (UTF-8)
-        } else {
-          reader.readAsDataURL(file); // Reads file as a base64-encoded URL (for image preview)
-        }
-      } catch (error) {
-        console.error('Unexpected error during file upload:', error);
-        toast.error('An unexpected error occurred while processing the file.');
+        ).then((result: any) => {
+          const { secure_url, public_id } = result;
+          setFormData({
+            ...formData,
+            image: secure_url,
+            image_file: fileName,
+            image_public_id: public_id,
+          });
+        });
       }
-    };
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast.error(type === 'image' ? 'Image upload failed. Please try again.' : 'Failed to read file. Please try again.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const requiredFields: (keyof ProjectInsert)[] = [
-      'title',
-      'date',
-      'description',
-      'markdown_content',
-      'tool_icon1',
-      'image',
-    ];
-
-    // Validate required fields safely
-    const hasEmptyRequired = requiredFields.some((field) => {
-      const value = formData[field];
-      return typeof value !== 'string' || value.trim() === ''; // Ensure value is a string before calling trim(), as ID can be number or undefined
-    });
-
-    if (hasEmptyRequired) {
+    if (hasEmptyRequiredFields(formData, REQUIRED_PROJECT_FIELDS)) {
       toast.error('Please fill in all required fields before submitting.');
       return;
     }
-      
+
     try {
       if (formData.id !== undefined) {
-        // setProjects(projects.map((proj) => (proj.id === formData.id ? { ...formData, id: proj.id } : proj)));
-        //await api.put(`/projects/${formData.id}`, formData);
-        await projectApi.update(formData.id, formData)
+        await projectApi.update(formData.id, formData);
       } else {
-        await projectApi.create(formData as ProjectInsert)
-        
-        // setProjects([...projects, { ...formData, id: Date.now() }]);
-        //await api.post('/projects', newProject);
+        await projectApi.create(formData as ProjectInsert);
       }
+      
       toast.success(`Project ${formData.id !== undefined ? 'updated' : 'added'} successfully!`);
     } catch (error) {
       console.error(error);
       toast.error('An error occurred while saving the project. Please try again.');
       return;
     } finally {
-
       await fetchAllProjects();
-      // Reset form and close modal
-      setFormData({
-        title: '',
-        slug: '',
-        date: '',
-        description: '',
-        markdown_file: '',
-        markdown_content: '',
-        tool_icon1: '',
-        tool_icon2: '',
-        image: '',
-        image_file: '',
-        image_public_id: '',
-      });
-
+      setFormData(EMPTY_PROJECT_FORM);
       setIsModalOpen(false);
     }
-    
   };
 
   const handleEdit = (project: ProjectRow) => {
@@ -251,53 +177,68 @@ const Dashboard = () => {
 
     try {
       const project = await projectApi.getById(id);
-      
+
       // Delete image from Cloudinary if it exists
       if (project.image_public_id) {
-        
-        try {
-          const response = await fetch(
-            `http://localhost:3000/api/delete`,
-            {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json', 
-              },
-              body: JSON.stringify({
-                public_id: project.image_public_id,
-              }),
-            }
-          );
-
-          const data = await response.json();
-          
-          if (!data.success) {
-            console.warn('Failed to delete image from Cloudinary:', data.error);
-          }
-        } catch (imageError) {
-          console.error('Error deleting image:', imageError);
-        }
-      } else {
-        toast.error('No associated image to delete from Cloudinary.');
+        await deleteFromCloudinary(project.image_public_id);
+        toast.success('Image deleted successfully!');
       }
-      
+
       // Delete project from database
       await projectApi.remove(id);
-      
       toast.success('Project deleted successfully!');
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
       toast.error('Failed to delete project. Please try again.');
       return;
     } finally {
       await fetchAllProjects();
     }
+  };
 
+  const handleFileDelete = async (type: 'markdown_content' | 'image') => {
+    try {
+      
+      if (type === 'markdown_content') {
+        setFormData({
+          ...formData,
+          markdown_content: '',
+          markdown_file: '',
+        });
+        toast.success('Markdown file deleted successfully!');
+          
+      } else {
+        // Delete image from Cloudinary if it exists
+        if (formData.image_public_id) {
+          try {
+            await toast.promise(deleteFromCloudinary(formData.image_public_id),
+            {
+              loading: 'Deleting image...',
+              success: 'Image deleted successfully!',
+              error: 'Failed to delete image. Please try again.',
+            });
+          } catch (error) {
+            console.error('Cloudinary deletion error:', error);
+            toast.error('Failed to delete image.');
+            return;
+          }
+        }
+
+        setFormData({
+          ...formData,
+          image: '',
+          image_file: '',
+          image_public_id: '',
+        });
+      }
+    } catch (error) {
+      console.error('File deletion error:', error);
+      toast.error('Failed to delete file. Please try again.');
+    }
   };
 
   const handleAddNew = () => {
-    setFormData({  title: '', slug:'', date:'', description: '', tool_icon1: '', markdown_file:'', markdown_content: '', image_file: '', image: '' });
+    setFormData(EMPTY_PROJECT_FORM);
     setIsModalOpen(true);
   };
 
@@ -310,12 +251,10 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <PageLoader
-        isShowing={isLoading}
-      ></PageLoader>
+      <PageLoader isShowing={isLoading} />
 
-      <Modal 
-        isOpen={isModalOpen} 
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={formData.id !== undefined ? 'Edit Project' : 'Add New Project'}
       >
@@ -324,6 +263,7 @@ const Dashboard = () => {
           onSubmit={handleSubmit}
           onChange={handleChange}
           onFileUpload={handleFileUpload}
+          onFileDelete={handleFileDelete}
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>

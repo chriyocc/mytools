@@ -11,6 +11,7 @@ interface ProjectFormProps {
   onSubmit: (e: React.FormEvent) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onFileUpload: (type: 'markdown_content' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileDelete: (type: 'markdown_content' | 'image') => void;
   onCancel: () => void;
 }
 
@@ -20,10 +21,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   onSubmit,
   onChange,
   onFileUpload,
+  onFileDelete,
   onCancel
 }) => {
   const markdownInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const isMarkdownUploaded = !!formData.markdown_content;
+  const isImageUploaded = !!formData.image;
 
   return (
     <form onSubmit={onSubmit} className="project-form">
@@ -51,10 +56,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           onChange={onChange}
           className="form-control"
         />
-        {/* {formData.date && (
-          new Date(formData.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })
-        )} */}
-
 
         <IconSelector
           name="tool_icon1"
@@ -75,17 +76,43 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             accept=".md"
             onChange={onFileUpload('markdown_content')}
             label="Markdown"
+            disabled={isMarkdownUploaded}
           />
           <FileUpload
             ref={imageInputRef}
             accept="image/*"
             onChange={onFileUpload('image')}
             label="Image"
+            disabled={isImageUploaded}
           />
         </div>
         <div>
-          {formData.markdown_content && <div className="file-name">✓ {formData.markdown_file} uploaded</div>}
-          {formData.image && <div className="file-name">✓ {formData.image_file} uploaded</div>}
+          <div className='file-status-section'> 
+          {isMarkdownUploaded && (
+            <div className="file-name-group">
+              <div className="file-name">✓ {formData.markdown_file} uploaded</div>
+              <button 
+                type="button" 
+                className="btn-underline" 
+                onClick={() => onFileDelete('markdown_content')}
+              >
+                Delete
+              </button>
+            </div>
+          )}
+          {isImageUploaded && (
+            <div className="file-name-group">
+              <div className="file-name">✓ {formData.image_file} uploaded</div>
+              <button 
+                type="button" 
+                className="btn-underline" 
+                onClick={() => onFileDelete('image')}
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
         </div>
       </div>
       <div className="project-actions">

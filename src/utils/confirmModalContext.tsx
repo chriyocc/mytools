@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import ConfirmModal from './ConfirmModal';
+import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 
 interface ConfirmModalProps {
   title: string;

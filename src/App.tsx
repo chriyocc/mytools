@@ -3,18 +3,11 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import JourneyDashboard from './pages/JourneyDashboard/JourneyDashboard';
 import Sidebar from './components/Sidebar/Sidebar';
 import { Toaster } from 'react-hot-toast';
-import { ConfirmProvider } from './components/ConfirmModal/ConfirmModalContext';
+import { ConfirmProvider } from './utils/ConfirmModalContext';
 import './App.css';
 import './styles/common.css'
-import {Cloudinary} from "@cloudinary/url-gen";
 
 const App = () => {
-  // Create a Cloudinary instance and set your cloud name.
-  const cld = new Cloudinary({
-    cloud: {
-      cloudName: 'dlaqeohvw'
-    }
-  });
   return (
     <ConfirmProvider>
       <Toaster 

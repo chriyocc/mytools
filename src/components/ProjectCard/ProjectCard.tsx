@@ -60,10 +60,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
       <div className="project-bottomBar">
         <div className='project-dateWrapper'>
           <div className="db-date">
-            Created_at: {project.date && new Date(project.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+            Created at: {project.created_at && new Date(project.created_at).toLocaleString("en-US", {
+              dateStyle: "long",
+              timeStyle: "short",
+            })}
           </div>
           <div className="db-date">
-            Updated_at: {project.date && new Date(project.date + '-01').toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+            Updated at: {project.updated_at && new Date(project.updated_at).toLocaleString("en-US", {
+              dateStyle: "long",
+              timeStyle: "short",
+            })}
           </div>
         </div>
         <div className="project-actions">
