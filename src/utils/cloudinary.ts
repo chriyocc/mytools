@@ -1,3 +1,4 @@
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 /**
  * Extract public_id from Cloudinary URL
  * @param url - Cloudinary image URL
@@ -35,7 +36,7 @@ export async function uploadToCloudinary(
   folder: string = 'project_imgs'
 ): Promise<{ secure_url: string; public_id: string }> {
   // Get signature from backend
-  const sigResponse = await fetch('http://localhost:3000/api/signature', {
+  const sigResponse = await fetch(`${apiBaseUrl}/signature`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ folder }),
@@ -78,7 +79,7 @@ export async function uploadToCloudinary(
  * @returns Success boolean
  */
 export async function deleteFromCloudinary(publicId: string): Promise<boolean> {
-  const response = await fetch('http://localhost:3000/api/delete/', {
+  const response = await fetch(`${apiBaseUrl}/delete`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

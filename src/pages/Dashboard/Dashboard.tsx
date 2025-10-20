@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 import { projectApi } from '../../api/projectApi';
 import { uploadToCloudinary, deleteFromCloudinary } from '../../utils/cloudinary';
 import { readFileAsText } from '../../utils/fileReader';
-import { generateSlug, hasEmptyRequiredFields } from '../../utils/formHelpers';
+import { generateSlug, hasEmptyRequiredFields, hasTempContent } from '../../utils/formHelpers';
 import { useConfirm } from '../../utils/ConfirmModalContext.tsx';
 import './Dashboard.css';
 
@@ -30,6 +30,14 @@ const EMPTY_PROJECT_FORM: Partial<ProjectInsert> = {
   image_public_id: '',
 };
 
+const EMPTY_TEMP_PROJECT_FORM = {
+  temp_markdown_file: '',
+  temp_markdown_content: '',
+  temp_image_file: '',
+  temp_image: '',
+  temp_image_public_id: '',
+}
+
 const REQUIRED_PROJECT_FIELDS: (keyof ProjectInsert)[] = [
   'title',
   'date',
@@ -43,6 +51,7 @@ const Dashboard = () => {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<Partial<ProjectInsert>>(EMPTY_PROJECT_FORM);
+  const [tempFormData, setTempFormData] = useState<typeof EMPTY_TEMP_PROJECT_FORM>(EMPTY_TEMP_PROJECT_FORM);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { confirm } = useConfirm();
 
@@ -63,6 +72,7 @@ const Dashboard = () => {
       setTimeout(() => {
         setIsLoading(false);
       }, 500);
+      
     }
   }
 
@@ -138,6 +148,18 @@ const Dashboard = () => {
     }
 
     try {
+      if (hasTempContent(tempFormData, EMPTY_TEMP_PROJECT_FORM)) { 
+        console.log('Handling temporary content cleanup...');
+        
+        if (tempFormData.temp_markdown_content) {
+          await deleteFile('markdown_content');
+        }
+        if (tempFormData.temp_image) {
+          await deleteFile('image');
+          
+        }
+
+      }
       if (formData.id !== undefined) {
         await projectApi.update(formData.id, formData);
       } else {
@@ -150,9 +172,10 @@ const Dashboard = () => {
       toast.error('An error occurred while saving the project. Please try again.');
       return;
     } finally {
-      await fetchAllProjects();
       setFormData(EMPTY_PROJECT_FORM);
+      setTempFormData(EMPTY_TEMP_PROJECT_FORM);
       setIsModalOpen(false);
+      await fetchAllProjects();
     }
   };
 
@@ -165,7 +188,7 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleProjectDelete = async (id: string) => {
     const confirmed = await confirm({
       title: 'Delete Item',
       message: 'Are you sure you want to delete this item?',
@@ -180,8 +203,18 @@ const Dashboard = () => {
 
       // Delete image from Cloudinary if it exists
       if (project.image_public_id) {
-        await deleteFromCloudinary(project.image_public_id);
-        toast.success('Image deleted successfully!');
+        try {
+          await toast.promise(deleteFromCloudinary(project.image_public_id),
+            {
+              loading: 'Deleting image...',
+              success: 'Image deleted successfully!',
+              error: 'Failed to delete image. Please try again.',
+            }
+          );
+        } catch (error) {
+          console.error('Cloudinary deletion error:', error);
+          toast.error('Failed to delete image.');
+        }
       }
 
       // Delete project from database
@@ -197,31 +230,46 @@ const Dashboard = () => {
   };
 
   const handleFileDelete = async (type: 'markdown_content' | 'image') => {
+    const confirmed = await confirm({
+      title: 'Delete Item',
+      message: 'Are you sure you want to delete this item?',
+      confirmText: 'Delete',
+      type: 'danger',
+    });
+
+    if (!confirmed) return;
+
     try {
       
       if (type === 'markdown_content') {
+        setTempFormData({
+          ...tempFormData,
+          temp_markdown_content: formData.markdown_content || '',
+          temp_markdown_file: formData.markdown_file || '',
+        });
         setFormData({
           ...formData,
           markdown_content: '',
           markdown_file: '',
         });
-        toast.success('Markdown file deleted successfully!');
+        toast.success('Markdown file is temporary deleted.');
           
       } else {
-        // Delete image from Cloudinary if it exists
         if (formData.image_public_id) {
-          try {
-            await toast.promise(deleteFromCloudinary(formData.image_public_id),
-            {
-              loading: 'Deleting image...',
-              success: 'Image deleted successfully!',
-              error: 'Failed to delete image. Please try again.',
-            });
-          } catch (error) {
-            console.error('Cloudinary deletion error:', error);
-            toast.error('Failed to delete image.');
-            return;
-          }
+          setTempFormData({
+            ...tempFormData,
+            temp_image: formData.image || '',
+            temp_image_file: formData.image_file || '',
+            temp_image_public_id: formData.image_public_id || '',
+          });
+          setFormData({
+            ...formData,
+            image: '',
+            image_file: '',
+            image_public_id: '',
+          });
+          toast.success('Image is temporarily deleted.');
+          return;
         }
 
         setFormData({
@@ -230,6 +278,46 @@ const Dashboard = () => {
           image_file: '',
           image_public_id: '',
         });
+      }
+    } catch (error) {
+      console.error('File deletion error:', error);
+      toast.error('Failed to delete file. Please try again.');
+    }
+  };
+
+  const deleteFile = async (type: 'markdown_content' | 'image') => {
+    try {
+      if (type === 'markdown_content') {
+        setTempFormData({
+          ...tempFormData,
+          temp_markdown_content: '',
+          temp_markdown_file: '',
+        });
+        toast.success('Temporary markdown content cleared.');
+      } else {
+        // Delete image from Cloudinary if it exists
+        if (formData.image_public_id) {
+          try {
+            await toast.promise(deleteFromCloudinary(tempFormData.temp_image_public_id || ''),
+              {
+                loading: 'Deleting previous image...',
+                success: 'Previous image deleted successfully!',
+                error: 'Failed to delete previous image. Please try again.',
+              });
+          } catch (error) {
+            console.error('Cloudinary deletion error:', error);
+            toast.error('Failed to delete image.');
+          }
+        }
+        setTempFormData(EMPTY_TEMP_PROJECT_FORM);
+        setFormData({
+          ...formData,
+          image: '',
+          image_file: '',
+          image_public_id: '',
+        });
+        toast.success('Temporary image content cleared.');
+        
       }
     } catch (error) {
       console.error('File deletion error:', error);
@@ -264,7 +352,7 @@ const Dashboard = () => {
           onChange={handleChange}
           onFileUpload={handleFileUpload}
           onFileDelete={handleFileDelete}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={() => { setIsModalOpen(false), setTempFormData(EMPTY_TEMP_PROJECT_FORM)}}
         />
       </Modal>
 
@@ -274,7 +362,7 @@ const Dashboard = () => {
             key={project.id}
             project={project}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={handleProjectDelete}
           />
         ))}
       </div>

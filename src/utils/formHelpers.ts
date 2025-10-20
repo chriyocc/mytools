@@ -25,3 +25,21 @@ export function hasEmptyRequiredFields<T extends Record<string, any>>(
     return typeof value !== 'string' || value.trim() === '';
   });
 }
+
+/**
+ * Validate has temporary content in temp form data
+ * @param data - Temp form data object
+ * @param emptyTemplate - Array of required field names
+ * @returns true if any temp field is not empty
+ */
+export function hasTempContent<T extends Record<string, any>>(
+  data: T,
+  emptyTemplate: T
+): boolean {
+  // return true if ANY field in `data` differs from `emptyTemplate`
+  return Object.keys(emptyTemplate).some((key) => {
+    const value = data[key as keyof T];
+    const emptyValue = emptyTemplate[key as keyof T];
+    return value !== emptyValue;
+  });
+}
