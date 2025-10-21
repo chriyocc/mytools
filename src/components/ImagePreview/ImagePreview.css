@@ -1,0 +1,89 @@
+.image-preview-modal,
+.image-preview-overlay {
+  --overlay-bg: rgba(0, 0, 0, 0.65);
+  --modal-bg: rgba(255, 255, 255, 0.98);
+  --modal-radius: 12px;
+  --modal-padding: 15px;
+  --max-width: 90vw;
+  --max-height: 90vh;
+  --close-size: 40px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 1005; 
+  opacity: 1;
+  transition: opacity var(--transition);
+  backdrop-filter: blur(4px);
+}
+
+/* modal container: centered */
+.image-preview-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-height: var(--max-height);
+  z-index: 1006;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--modal-padding);
+  animation: modal-pop var(--transition) both;
+}
+
+/* header for close button */
+.image-preview-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* close button */
+.image-preview-close {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 1;
+  transform: translateX(15px);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* content area that centers the image */
+.image-preview-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 8px;
+  background: transparent;
+}
+
+/* image: responsive, preserve aspect ratio */
+.image-preview-img {
+  max-width: 100%;
+  max-height: calc(var(--max-height) - 80px); /* leave space for header/padding */
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+  user-select: none;
+}
+
+/* Utility: if you want to hide overlay quickly (e.g., for fade out) */
+.image-preview-overlay.hidden,
+.image-preview-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}

@@ -77,8 +77,9 @@ const IconSelector: React.FC<IconSelectorProps> = ({ name, value, onChange, labe
             <div
               key={icon.name}
               onClick={() => {
+                const newValue = value === icon.name ? '' : icon.name;
                 const syntheticEvent = {
-                  target: { name, value: icon.name }
+                  target: { name, value: newValue }
                 } as React.ChangeEvent<HTMLSelectElement>;
                 onChange(syntheticEvent);
                 setIsOpen(false);

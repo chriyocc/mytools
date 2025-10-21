@@ -3,6 +3,7 @@ import type { Database } from '../../types/database.types';
 import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import './ProjectForm.css';
+import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 
 type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
 
@@ -13,8 +14,8 @@ interface ProjectFormProps {
   onFileUpload: (type: 'markdown_content' | 'image') => (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileDelete: (type: 'markdown_content' | 'image') => void;
   onCancel: () => void;
+  isDisabled?: boolean;
 }
-
 
 const ProjectForm: React.FC<ProjectFormProps> = ({
   formData,
@@ -22,16 +23,34 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   onChange,
   onFileUpload,
   onFileDelete,
-  onCancel
+  onCancel,
+  isDisabled = false,
 }) => {
   const markdownInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const { openImagePreview } = useImagePreview();
 
   const isMarkdownUploaded = !!formData.markdown_content;
   const isImageUploaded = !!formData.image;
 
   return (
     <form onSubmit={onSubmit} className="project-form">
+      {/* Overlay to prevent interaction during save */}
+      {isDisabled && (
+        <div 
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            zIndex: 1001,
+            cursor: 'not-allowed',
+            borderRadius: '8px',
+          }}
+        />
+      )}
       <div className="form-group">
         <input
           type="text"
@@ -102,7 +121,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           )}
           {isImageUploaded && (
             <div className="file-name-group">
-              <div className="file-name">✓ {formData.image_file} uploaded</div>
+              <div
+                  className="file-name img-open"
+                  onClick={() => openImagePreview(formData.image!)}
+                >✓ {formData.image_file} uploaded</div>
               <button 
                 type="button" 
                 className="btn-underline" 

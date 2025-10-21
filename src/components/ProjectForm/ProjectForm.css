@@ -37,7 +37,11 @@ textarea.form-control {
 .file-name {
   color: #28a745;
   font-size: 0.9rem;
+}
 
+.file-name:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .file-name-group {

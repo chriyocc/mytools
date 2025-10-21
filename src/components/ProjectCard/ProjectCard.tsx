@@ -2,6 +2,8 @@ import React from 'react';
 import './ProjectCard.css';
 import iconMap from '../IconSelector/iconMap';
 import type { Database } from '../../types/database.types';
+import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
+
 
 type ProjectRow = Database['public']['Tables']['projects']['Row'];
 
@@ -12,6 +14,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
+  const { openImagePreview } = useImagePreview();
   return (
     <div className="project-card">
       <div className='project-card-header'>
@@ -45,7 +48,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
           <img
             src={project.image}
             alt={project.title}
-            className="project-image"
+            className="project-image img-open"
+            onClick={() => {
+              openImagePreview(project.image!);
+            }}
           />
         )}
         <p className='project-fileInfo'>
