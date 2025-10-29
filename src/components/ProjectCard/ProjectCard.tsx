@@ -3,6 +3,7 @@ import './ProjectCard.css';
 import iconMap from '../IconSelector/iconMap';
 import type { Database } from '../../types/database.types';
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
+import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
 
 
 type ProjectRow = Database['public']['Tables']['projects']['Row'];
@@ -15,6 +16,7 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
   const { openImagePreview } = useImagePreview();
+  const { openMarkdownPreview } = useMarkdownPreview();
   return (
     <div className="project-card">
       <div className='project-card-header'>
@@ -59,7 +61,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
         </p>
       </div>
        {project.markdown_content && (
-        <p className='project-fileInfo'>
+        <p className='preview-open project-fileInfo' onClick={() => { openMarkdownPreview(project.markdown_content!); }}>
           ✓ {project.markdown_file} uploaded
         </p>
       )}

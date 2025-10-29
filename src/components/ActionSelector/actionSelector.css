@@ -1,0 +1,86 @@
+.action-selector-container {
+  position: relative;
+}
+
+.action-selector-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.action-selector-button {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #fff;
+  min-height: 50px;
+}
+
+.action-selector-button:hover {
+  background-color: #f9f9f9;
+}
+
+.action-selector-selected {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-selector-action {
+  display: flex;
+  align-items: center;
+}
+
+.action-selector-text {
+  text-transform: capitalize;
+}
+
+.action-selector-placeholder {
+  color: #999;
+}
+
+.action-selector-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 4px;
+  z-index: 1000;
+  max-height: 10rem;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.action-selector-option {
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+  background-color: transparent;
+  transition: background-color 0.2s;
+}
+
+.action-selector-option:hover {
+  background-color: #f8f8f8;
+}
+
+.action-selector-option.selected {
+  background-color: #f0f0f0;
+}
+
+.action-selector-option.selected:hover {
+  background-color: #f0f0f0;
+}
+
+.action-selector-option:last-child {
+  border-bottom: none;
+}

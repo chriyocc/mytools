@@ -41,7 +41,6 @@ textarea.form-control {
 
 .file-name:hover {
   text-decoration: underline;
-  cursor: pointer;
 }
 
 .file-name-group {

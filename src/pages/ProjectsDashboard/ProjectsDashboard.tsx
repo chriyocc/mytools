@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { Database } from '../../types/database.types';
-import Modal from '../../components/Modal/Modal';
-import ProjectForm from '../../components/ProjectForm/ProjectForm';
-import ProjectCard from '../../components/ProjectCard/ProjectCard';
-import PageLoader from '../../components/PageLoader/PageLoader'
+import type { Database } from '../../types/database.types.ts';
+import Modal from '../../components/Modal/Modal.tsx';
+import ProjectForm from '../../components/ProjectForm/ProjectForm.tsx';
+import ProjectCard from '../../components/ProjectCard/ProjectCard.tsx';
+import PageLoader from '../../components/PageLoader/PageLoader.tsx'
 import { toast } from 'react-hot-toast';
-import { projectApi } from '../../api/projectApi';
-import { uploadToCloudinary, deleteFromCloudinary } from '../../utils/cloudinary';
-import { readFileAsText } from '../../utils/fileReader';
-import { generateSlug, hasEmptyRequiredFields} from '../../utils/formHelpers';
+import { projectApi } from '../../api/projectApi.ts';
+import { uploadToCloudinary, deleteFromCloudinary } from '../../utils/cloudinary.ts';
+import { readFileAsText } from '../../utils/fileReader.ts';
+import { generateSlug, hasEmptyRequiredFields } from '../../utils/formHelpers.ts';
 import { useConfirm } from '../../utils/confirmModalContext.tsx';
-import './Dashboard.css';
+import './ProjectsDashboard.css';
 
 
 type ProjectRow = Database['public']['Tables']['projects']['Row'];
@@ -46,7 +46,7 @@ const REQUIRED_PROJECT_FIELDS: (keyof ProjectInsert)[] = [
   'image',
 ];
 
-const Dashboard = () => {
+const ProjectsDashboard = () => {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false); // Track saving state
@@ -420,4 +420,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default ProjectsDashboard;

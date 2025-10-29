@@ -17,44 +17,94 @@ export type Database = {
       journey: {
         Row: {
           action: string | null
+          created_at: string | null
           description: string | null
           id: string
           image_1: string | null
           image_2: string | null
-          item_id: string | null
+          image1_file: string | null
+          image1_public_id: string | null
+          image2_file: string | null
+          image2_public_id: string | null
           link: string | null
           markdown_content: string | null
-          month: string
-          title: string
-          type_icon: string | null
-          year: number
+          markdown_file: string | null
+          month_id: number | null
+          title: string | null
+          type_icon1: string | null
+          type_icon2: string | null
+          updated_at: string | null
         }
         Insert: {
           action?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           image_1?: string | null
           image_2?: string | null
-          item_id?: string | null
+          image1_file?: string | null
+          image1_public_id?: string | null
+          image2_file?: string | null
+          image2_public_id?: string | null
           link?: string | null
           markdown_content?: string | null
-          month: string
-          title: string
-          type_icon?: string | null
-          year: number
+          markdown_file?: string | null
+          month_id?: number | null
+          title?: string | null
+          type_icon1?: string | null
+          type_icon2?: string | null
+          updated_at?: string | null
         }
         Update: {
           action?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           image_1?: string | null
           image_2?: string | null
-          item_id?: string | null
+          image1_file?: string | null
+          image1_public_id?: string | null
+          image2_file?: string | null
+          image2_public_id?: string | null
           link?: string | null
           markdown_content?: string | null
-          month?: string
-          title?: string
-          type_icon?: string | null
+          markdown_file?: string | null
+          month_id?: number | null
+          title?: string | null
+          type_icon1?: string | null
+          type_icon2?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_month_id_fkey"
+            columns: ["month_id"]
+            isOneToOne: false
+            referencedRelation: "months"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      months: {
+        Row: {
+          created_at: string | null
+          id: number
+          month_name: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          month_name: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          month_name?: string
+          updated_at?: string | null
           year?: number
         }
         Relationships: []

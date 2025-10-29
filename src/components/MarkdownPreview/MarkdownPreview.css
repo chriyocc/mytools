@@ -1,0 +1,96 @@
+.markdown-preview-modal,
+.markdown-preview-overlay {
+  --overlay-bg: rgba(0, 0, 0, 0.65);
+  --modal-bg: rgba(255, 255, 255, 0.98);
+  --modal-radius: 15px;
+  --modal-padding: 15px;
+  --max-width: 90vw;
+  --min-width: 60vw;
+  --max-height: 90vh;
+  --min-height: 60vh;
+  --close-size: 40px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+
+.markdown-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 1004; 
+  opacity: 1;
+  transition: opacity var(--transition);
+  backdrop-filter: blur(4px);
+}
+
+/* modal container: centered */
+.markdown-preview-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-height: var(--max-height);
+  min-width: var(--min-width);
+  min-height: var(--min-height);
+  background-color: var(--modal-bg);
+  border-radius: var(--modal-radius);
+  z-index: 1006;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--modal-padding);
+  animation: modal-pop var(--transition) both;
+}
+
+/* header for close button */
+.markdown-preview-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* close button */
+.markdown-preview-close {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #000000;
+  font-size: 30px;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.markdown-preview-content {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 10px;
+  padding: 0 1.5rem;
+}
+
+/* --- Inner rendered markdown HTML --- */
+.markdown-preview-body {
+  width: 100%;
+  line-height: 1.6;
+}
+
+/* markdown: responsive, preserve aspect ratio */
+.markdown-preview-img {
+  max-width: 100%;
+  max-height: calc(var(--max-height) - 80px); /* leave space for header/padding */
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+  user-select: none;
+}
+
+/* Utility: if you want to hide overlay quickly (e.g., for fade out) */
+.markdown-preview-overlay.hidden,
+.markdown-preview-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}

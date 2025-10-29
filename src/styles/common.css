@@ -75,8 +75,12 @@ body {
   text-decoration: underline;
 }
 
-.open-img {
+.preview-open {
   cursor: pointer;
+}
+
+.preview-open:hover {
+  opacity: 0.8;
 }
 
 @keyframes modal-pop {

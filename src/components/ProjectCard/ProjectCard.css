@@ -48,8 +48,8 @@
 }
 
 .project-image {
-  width: 278px;
-  height: 260px;
+  width: 100%;
+  aspect-ratio: 4/3;
   cursor: pointer;
   object-fit: cover;
   border-radius: 20px;

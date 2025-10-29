@@ -4,6 +4,7 @@ import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import './ProjectForm.css';
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
+import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
 
 type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
 
@@ -29,6 +30,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const markdownInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { openImagePreview } = useImagePreview();
+  const { openMarkdownPreview } = useMarkdownPreview();
 
   const isMarkdownUploaded = !!formData.markdown_content;
   const isImageUploaded = !!formData.image;
@@ -109,7 +111,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           <div className='file-status-section'> 
           {isMarkdownUploaded && (
             <div className="file-name-group">
-              <div className="file-name">✓ {formData.markdown_file} uploaded</div>
+              <div
+                  className="preview-open file-name"
+                  onClick={() => openMarkdownPreview(formData.markdown_content!)}
+                >✓ {formData.markdown_file} uploaded</div>
               <button 
                 type="button" 
                 className="btn-underline" 
@@ -122,7 +127,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           {isImageUploaded && (
             <div className="file-name-group">
               <div
-                  className="file-name img-open"
+                  className=" preview-open file-name"
                   onClick={() => openImagePreview(formData.image!)}
                 >✓ {formData.image_file} uploaded</div>
               <button 
