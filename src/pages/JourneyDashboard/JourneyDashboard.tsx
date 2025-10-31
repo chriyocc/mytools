@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Database } from '../../types/database.types.ts';
-import type { Journey } from '../../types/Journey';
 import Modal from '../../components/Modal/Modal';
 import JourneyCard from '../../components/JourneyCard/JourneyCard';
 import JourneyForm from '../../components/JourneyForm/JourneyForm';
@@ -23,7 +22,7 @@ interface JourneyFormState extends Partial<JourneyInsert> {
   image1_deleted?: boolean;
   image2_deleted?: boolean;
   year?: number;
-  month_name?: string;
+  month_num?: number;
 }
 
 const EMPTY_JOURNEY_FORM: JourneyFormState = {
@@ -36,20 +35,21 @@ const EMPTY_JOURNEY_FORM: JourneyFormState = {
   type_icon2: '',
   image_1: '',
   image_2: '',
+  image1_file: '',
+  image2_file: '',
+  image1_public_id: '',
+  image2_public_id: '',
   pending_image1_file: undefined,
   pending_image2_file: undefined,
   image1_deleted: false,
   image2_deleted: false,
   year: new Date().getFullYear(),
-  month_name: '',
+  month_num: undefined,
 };
 
 const REQUIRED_JOURNEY_FIELDS: (keyof JourneyInsert)[] = [
-  'month_id',
   'title',
   'description',
-  'image_1',
-  'image_2',
 ];
 
 const JourneyDashboard = () => {
@@ -66,45 +66,45 @@ const JourneyDashboard = () => {
   const originalImage2PublicIdRef = useRef<string>('');
 
   useEffect(() => {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        // Always prevent if saving
-        if (isSaving) {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Always prevent if saving
+      if (isSaving) {
+        e.preventDefault();
+        e.returnValue = 'Upload in progress. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+
+      // Also prevent if modal is open with unsaved changes
+      if (isModalOpen) {
+        const hasChanges = 
+          formData.title !== EMPTY_JOURNEY_FORM.title ||
+          formData.description !== EMPTY_JOURNEY_FORM.description ||
+          formData.markdown_content !== EMPTY_JOURNEY_FORM.markdown_content ||
+          formData.pending_image1_file !== undefined ||
+          formData.image1_deleted === true ||
+          formData.pending_image2_file !== undefined ||
+          formData.image2_deleted === true;
+
+        if (hasChanges) {
           e.preventDefault();
-          e.returnValue = 'Upload in progress. Are you sure you want to leave?';
+          e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
           return e.returnValue;
         }
-  
-        // Also prevent if modal is open with unsaved changes
-        if (isModalOpen) {
-          const hasChanges = 
-            formData.title !== EMPTY_JOURNEY_FORM.title ||
-            formData.description !== EMPTY_JOURNEY_FORM.description ||
-            formData.markdown_content !== EMPTY_JOURNEY_FORM.markdown_content ||
-            formData.pending_image1_file !== undefined ||
-            formData.image1_deleted === true;
-            formData.pending_image2_file !== undefined ||
-            formData.image2_deleted === true;
-  
-          if (hasChanges) {
-            e.preventDefault();
-            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
-            return e.returnValue;
-          }
-        }
-      };
-  
-      window.addEventListener('beforeunload', handleBeforeUnload);
-  
-      return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-      };
-    }, [isSaving, isModalOpen, formData]);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isSaving, isModalOpen, formData]);
 
   useEffect(() => {
-    fetchAllData();
+    fetchAllJourneys();
   }, []);
 
-  async function fetchAllData() {
+  async function fetchAllJourneys() {
     try {
       setIsLoading(true);
       const [journeyData, monthData] = await Promise.all([
@@ -127,11 +127,53 @@ const JourneyDashboard = () => {
     try {
       const { name, value } = e.target;
       
-      setFormData({ ...formData, [name]: value });
+      if (name === 'date') {
+        const [year, month_num] = value.split('-');
+        const yearNum = Number(year);
+        const monthNum = Number(month_num);
+        
+        // Find or create the month_id based on year and month_num
+        const matchingMonth = months.find(m => m.year === yearNum && m.month_num === monthNum);
+        
+        if (matchingMonth) {
+          // Month exists, use its ID
+          setFormData({ 
+            ...formData, 
+            month_id: matchingMonth.id,
+            year: yearNum, 
+            month_num: monthNum
+          });
+        } else {
+          // Month doesn't exist yet - will be created on submit
+          // For now, just store year and month_num
+          setFormData({ 
+            ...formData, 
+            month_id: undefined, // Will be resolved on submit
+            year: yearNum, 
+            month_num: monthNum
+          });
+        }
+      } else if (name === 'action') {
+        setFormData({
+          ...formData,
+          action: value,
+          link: '',
+          markdown_content: '',
+          markdown_file: ''
+        })
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
+      
     } catch (error) {
       console.error('Error updating form field:', error);
       toast.error('Something went wrong while updating the form.');
     }
+  };
+
+  const handleProjectChange = (slug: string) => {
+
+    setFormData({ ...formData, link: slug });
   };
 
   const handleFileUpload = (type: 'markdown_content' | 'image_1' | 'image_2') => async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,8 +192,8 @@ const JourneyDashboard = () => {
         });
         toast.success('Markdown file loaded!');
       } else {
-
         const imageNum = type === 'image_1' ? '1' : '2';
+        
         const imageUrl = URL.createObjectURL(file);
       
         setFormData({
@@ -172,7 +214,7 @@ const JourneyDashboard = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (hasEmptyRequiredFields(formData, REQUIRED_JOURNEY_FIELDS)) {
+    if (hasEmptyRequiredFields(formData, REQUIRED_JOURNEY_FIELDS) || (!formData.month_num && !formData.year)) {
       toast.error('Please fill in all required fields before submitting.');
       return;
     }
@@ -181,17 +223,36 @@ const JourneyDashboard = () => {
     let toastId: string | undefined;
     
     try {
+      let monthId = formData.month_id;
+    
+      if (!monthId && formData.year && formData.month_num) {
+        // Create or get the month
+        const month = await journeyApi.getOrCreateMonth(formData.year, formData.month_num);
+        monthId = month.id;
+      }
+      
+      if (!monthId) {
+        toast.error('Please select a valid date.');
+        setIsSaving(false);
+        return;
+      }
+
+      let finalFullLink = formData.link || ''
+      if (formData.action === 'navigate') {
+        finalFullLink = `/projects/${formData.link}`
+      }
+
       // Handle image uploads if needed
-      let finalImage1Url = formData.image_1;
-      let finalImage2Url = formData.image_2;
-      let finalImage1PublicId = formData.image1_public_id;
-      let finalImage2PublicId = formData.image2_public_id;
+      let finalImage1Url = formData.image_1 || '';
+      let finalImage2Url = formData.image_2 || '';
+      let finalImage1PublicId = formData.image1_public_id || '';
+      let finalImage2PublicId = formData.image2_public_id || '';
       
       // ===== IMAGE 1 HANDLING =====
       if (formData.pending_image1_file) {
         // Upload image 1 to Cloudinary
         toastId = toast.loading('Uploading image 1...');
-        const uploadResult = await uploadToCloudinary(formData.pending_image1_file);
+        const uploadResult = await uploadToCloudinary(formData.pending_image1_file, 'journey_imgs');
         finalImage1Url = uploadResult.secure_url;
         finalImage1PublicId = uploadResult.public_id;
         toast.success('Image 1 uploaded!', { id: toastId });
@@ -226,7 +287,7 @@ const JourneyDashboard = () => {
       if (formData.pending_image2_file) {
         // Upload image 2 to Cloudinary
         toastId = toast.loading('Uploading image 2...');
-        const uploadResult = await uploadToCloudinary(formData.pending_image2_file);
+        const uploadResult = await uploadToCloudinary(formData.pending_image2_file, 'journey_imgs');
         finalImage2Url = uploadResult.secure_url;
         finalImage2PublicId = uploadResult.public_id;
         toast.success('Image 2 uploaded!', { id: toastId });
@@ -258,17 +319,17 @@ const JourneyDashboard = () => {
       }
       
       const journeyData: Partial<JourneyInsert> = {
-        month_id: formData.month_id!,
+        month_id: monthId!,
         action: formData.action || '',
-        link: formData.link || '',
+        link: finalFullLink || '',
         title: formData.title!,
         description: formData.description!,
         type_icon1: formData.type_icon1 || '',
         type_icon2: formData.type_icon2 || '',
-        image_1: finalImage1Url || '',
-        image_2: finalImage2Url || '',
-        image1_file: formData.image1_file,
-        image2_file: formData.image2_file,
+        image_1: finalImage1Url,
+        image_2: finalImage2Url,
+        image1_file: formData.image1_file || '',
+        image2_file: formData.image2_file || '',
         image1_public_id: finalImage1PublicId,
         image2_public_id: finalImage2PublicId,
       };
@@ -293,7 +354,7 @@ const JourneyDashboard = () => {
       
       setFormData(EMPTY_JOURNEY_FORM);
       setIsModalOpen(false);
-      await fetchAllData();
+      await fetchAllJourneys();
     } catch (error) {
       console.error(error);
       if (toastId) {
@@ -306,9 +367,9 @@ const JourneyDashboard = () => {
     }
   };
 
-  const handleEdit = (journey: JourneyRow) => {
+  const handleEdit = (journey: JourneyFormState) => {
     if (!journey) {
-      toast.error('Invalid project data');
+      toast.error('Invalid journey data');
       return;
     }
     // Find the month details for this journey
@@ -317,7 +378,7 @@ const JourneyDashboard = () => {
     setFormData({
       ...journey,
       year: month?.year,
-      month_name: month?.month_name,
+      month_num: month?.month_num ?? undefined,
       pending_image1_file: undefined,
       image1_deleted: false,
       pending_image2_file: undefined,
@@ -325,14 +386,18 @@ const JourneyDashboard = () => {
     });
 
     originalImage1PublicIdRef.current = journey.image1_public_id || '';
-    originalImage1PublicIdRef.current = journey.image2_public_id || '';
+    originalImage2PublicIdRef.current = journey.image2_public_id || '';
     setIsModalOpen(true);
   };
 
-  const handleJourneyDelete = async (id: string) => {
+  const handleJourneyDelete = async (id: string, title: string) => {
     const confirmed = await confirm({
       title: 'Delete Journey',
-      message: 'Are you sure you want to delete this journey?',
+      message: (
+        <>
+          Are you sure you want to delete <strong>{title}</strong>?
+        </>
+      ),
       confirmText: 'Delete',
       type: 'danger',
     });
@@ -344,87 +409,150 @@ const JourneyDashboard = () => {
     try {
       const journey = await journeyApi.getById(id);
 
-      // Delete image from Cloudinary if it exists
+      if (!journey) {
+        toast.error('Journey not found', { id: toastId });
+        return;
+      }
+
+      // Delete image 1 from Cloudinary if it exists
       if (journey.image1_public_id) {
         try {
-          await deleteFromCloudinary(project.image_public_id);
+          await deleteFromCloudinary(journey.image1_public_id);
         } catch (error) {
           console.error('Cloudinary deletion error:', error);
-          toast.error('Failed to delete image, but will continue...', { id: toastId });
+          toast.error('Failed to delete image 1, but will continue...', { id: toastId });
         }
       }
 
-      // Delete project from database
-      await projectApi.remove(id);
-      toast.success('Project deleted successfully!', { id: toastId });
+      // Delete image 2 from Cloudinary if it exists
+      if (journey.image2_public_id) {
+        try {
+          await deleteFromCloudinary(journey.image2_public_id);
+        } catch (error) {
+          console.error('Cloudinary deletion error:', error);
+          toast.error('Failed to delete image 2, but will continue...', { id: toastId });
+        }
+      }
+
+      // Delete journey from database
+      await journeyApi.remove(id);
+      toast.success('Journey deleted successfully!', { id: toastId });
+
     } catch (error) {
       console.error(error);
-      toast.error('Failed to delete project.', { id: toastId });
+      toast.error('Failed to delete journey.', { id: toastId });
     } finally {
-      await fetchAllProjects();
+      await fetchAllJourneys();
     }
   };
 
-  const handleFileDelete = async (type: 'image_1' | 'image_2') => {
+  const handleFileDelete = async (type: 'markdown_content' | 'image_1' | 'image_2') => {
     const confirmed = await confirm({
-      title: 'Remove Image',
-      message: 'Are you sure you want to remove this image from the form?',
+      title: 'Remove File',
+      message: 'Are you sure you want to remove this file from the form?',
       confirmText: 'Remove',
       type: 'danger',
     });
 
     if (!confirmed) return;
 
-    const imageNum = type === 'image_1' ? '1' : '2';
-    
-    setFormData({
-      ...formData,
-      [type]: '',
-      [`image${imageNum}_deleted`]: true,
-      [`pending_image${imageNum}_file`]: undefined,
-    });
-    toast.success('Image removed.');
+    if (type === 'markdown_content') {
+      setFormData({
+        ...formData,
+        markdown_content: '',
+        markdown_file: '',
+      });
+      toast.success('Markdown file removed.');
+    } else {
+      const imageNum = type === 'image_1' ? '1' : '2';
+      
+      setFormData({
+        ...formData,
+        [type]: '',
+        [`image${imageNum}_deleted`]: true,
+        [`image${imageNum}_file`]: '',
+        [`pending_image${imageNum}_file`]: undefined,
+      });
+      
+      toast.success('Image removed.');
+    }
   };
 
-  const handleDelete = async (id: string) => {
-    const journey = journeys.find(j => j.id === id);
-    if (!journey) return;
+  const handleCancel = async () => {
+    // Don't allow cancel during save
+    if (isSaving) return;
 
-    const confirmed = await confirm({
-      title: 'Delete Journey Entry',
-      message: `Are you sure you want to delete "${journey.title}"?`,
-      confirmText: 'Delete',
-      type: 'danger',
-    });
+    // Check if there are unsaved changes
+    const hasChanges = 
+      formData.title !== EMPTY_JOURNEY_FORM.title ||
+      formData.description !== EMPTY_JOURNEY_FORM.description ||
+      formData.action !== EMPTY_JOURNEY_FORM.action ||
+      formData.link !== EMPTY_JOURNEY_FORM.link ||
+      formData.type_icon1 !== EMPTY_JOURNEY_FORM.type_icon1 ||
+      formData.type_icon2 !== EMPTY_JOURNEY_FORM.type_icon2 ||
+      formData.markdown_content !== EMPTY_JOURNEY_FORM.markdown_content ||
+      formData.pending_image1_file !== undefined ||
+      formData.image1_deleted === true ||
+      formData.pending_image2_file !== undefined ||
+      formData.image2_deleted === true ||
+      formData.month_num !== EMPTY_JOURNEY_FORM.month_num ||
+      formData.year !== EMPTY_JOURNEY_FORM.year ||
+      formData.month_id !== EMPTY_JOURNEY_FORM.month_id;
+    
+    if (hasChanges && formData.id !== undefined) {
+      const confirmed = await confirm({
+        title: 'Discard Changes',
+        message: 'You have unsaved changes. Are you sure you want to discard them?',
+        confirmText: 'Discard',
+        type: 'danger',
+      });
 
-    if (!confirmed) return;
-
-    try {
-      await journeyApi.delete(id);
-      setJourneys(journeys.filter((j) => j.id !== id));
-      toast.success('Journey entry deleted');
-    } catch (error) {
-      console.error('Error deleting journey:', error);
-      toast.error('Failed to delete journey entry');
+      if (!confirmed) return;
     }
+
+    // Clean up blob URLs
+    if (formData.image_1 && formData.image_1.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.image_1);
+    }
+    if (formData.image_2 && formData.image_2.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.image_2);
+    }
+
+    setFormData(EMPTY_JOURNEY_FORM);
+    setIsModalOpen(false);
   };
 
   const handleAddNew = () => {
     setFormData(EMPTY_JOURNEY_FORM);
+    originalImage1PublicIdRef.current = '';
+    originalImage2PublicIdRef.current = '';
     setIsModalOpen(true);
+  };
+
+  
+  // Month names constant for converting month_num to names
+  const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Helper function to get month name from month_num (1-12)
+  const getMonthName = (monthNum: number | null): string => {
+    if (!monthNum || monthNum < 1 || monthNum > 12) return '';
+    return MONTH_NAMES[monthNum - 1];
   };
 
   // Get journeys with month information
   const journeysWithMonths = journeys.map(journey => {
     const month = months.find(m => m.id === journey.month_id);
+    const monthName = getMonthName(month?.month_num || null);
+    
     return {
       ...journey,
       year: month?.year,
-      month_name: month?.month_name,
-      month_index: month?.month_name ? 
-        ['January', 'February', 'March', 'April', 'May', 'June', 
-         'July', 'August', 'September', 'October', 'November', 'December']
-        .indexOf(month.month_name) : -1
+      month_num: month?.month_num ?? undefined,
+      month_name: monthName,
+      month_index: month?.month_num ? month.month_num - 1 : -1 // Convert 1-12 to 0-11 for sorting
     };
   });
 
@@ -436,20 +564,23 @@ const JourneyDashboard = () => {
   // Group and sort the filtered journeys
   const sortedGroups = Object.entries(
     filteredJourneys.reduce((groups, journey) => {
-      if (!journey.year || !journey.month_name) return groups;
+      if (!journey.year || !journey.month_num) return groups;
       
-      const key = `${journey.year}-${journey.month_index}`;
+      const key = `${journey.year}-${String(journey.month_num).padStart(2, '0')}`; // e.g., "2024-03"
+      
       if (!groups[key]) {
         groups[key] = {
           year: journey.year,
+          month_num: journey.month_num,
           month: journey.month_name,
           journeys: []
         };
       }
       groups[key].journeys.push(journey);
+      
       return groups;
-    }, {} as Record<string, { year: number; month: string; journeys: typeof journeysWithMonths }>)
-  ).sort(([a], [b]) => b.localeCompare(a));
+    }, {} as Record<string, { year: number; month_num: number; month: string; journeys: typeof journeysWithMonths }>)
+  ).sort(([a], [b]) => b.localeCompare(a)); // Sorts by "YYYY-MM" descending
 
   // Get unique years from months
   const availableYears = [...new Set(months.map(m => m.year))].sort((a, b) => b - a);
@@ -476,7 +607,9 @@ const JourneyDashboard = () => {
           <button
             key={year}
             className={`btn year-btn ${selectedYear === year ? 'active' : ''}`}
-            onClick={() => setSelectedYear(year)}
+            onClick={() => {
+              setSelectedYear(year);
+             }}
           >
             {year}
           </button>
@@ -485,18 +618,18 @@ const JourneyDashboard = () => {
 
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCancel}
         title={formData.id !== undefined ? 'Edit Journey Entry' : 'Add Journey Entry'}
       >
         <JourneyForm
           formData={formData}
-          months={months}
           onSubmit={handleSubmit}
           onChange={handleChange}
           onFileDelete={handleFileDelete}
           onFileUpload={handleFileUpload}
-          onCancel={() => setIsModalOpen(false)}
-          isSaving={isSaving}
+          onProjectChange={handleProjectChange}
+          onCancel={handleCancel}
+          isDisabled={isSaving}
         />
       </Modal>
 
@@ -526,7 +659,7 @@ const JourneyDashboard = () => {
                       key={journey.id}
                       journey={journey}
                       onEdit={handleEdit}
-                      onDelete={handleDelete}
+                      onDelete={handleJourneyDelete}
                     />
                   ))}
                 </div>

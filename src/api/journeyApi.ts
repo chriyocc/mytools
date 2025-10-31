@@ -30,7 +30,7 @@ export const journeyApi = {
   /**
    * Get a single journey entry by ID
    */
-  async getById(id: string): Promise<JourneyRow | null> {
+  async getById(id: string) {
     const { data, error } = await supabase
       .from('journey')
       .select('*')
@@ -71,7 +71,7 @@ export const journeyApi = {
       .from('journey')
       .select(`
         *,
-        months!inner(year, month_name)
+        months!inner(year, month_num)
       `)
       .eq('months.year', year)
       .order('created_at', { ascending: false });
@@ -124,7 +124,7 @@ export const journeyApi = {
   /**
    * Delete a journey entry
    */
-  async delete(id: string): Promise<void> {
+  async remove(id: string): Promise<void> {
     const { error } = await supabase
       .from('journey')
       .delete()
@@ -146,7 +146,7 @@ export const journeyApi = {
       .from('months')
       .select('*')
       .order('year', { ascending: false })
-      .order('month_name', { ascending: true });
+      .order('month_num', { ascending: true });
 
     if (error) {
       console.error('Error fetching months:', error);
@@ -164,7 +164,7 @@ export const journeyApi = {
       .from('months')
       .select('*')
       .eq('year', year)
-      .order('month_name', { ascending: true });
+      .order('month_num', { ascending: true });
 
     if (error) {
       console.error('Error fetching months by year:', error);
@@ -213,13 +213,18 @@ export const journeyApi = {
   /**
    * Get or create a month (useful for ensuring a month exists before adding journey)
    */
-  async getOrCreateMonth(year: number, monthName: string): Promise<MonthRow> {
+  async getOrCreateMonth(year: number, monthNum: number): Promise<MonthRow> {
+    // Validate month_num is between 1-12
+    if (monthNum < 1 || monthNum > 12) {
+      throw new Error('month_num must be between 1 and 12');
+    }
+
     // First, try to get the month
     const { data: existingMonth, error: fetchError } = await supabase
       .from('months')
       .select('*')
       .eq('year', year)
-      .eq('month_name', monthName)
+      .eq('month_num', monthNum)
       .single();
 
     if (existingMonth) {
@@ -228,7 +233,7 @@ export const journeyApi = {
 
     // If not found, create it
     if (fetchError && fetchError.code === 'PGRST116') {
-      return await this.createMonth({ year, month_name: monthName });
+      return await this.createMonth({ year, month_num: monthNum });
     }
 
     // If other error, throw it
@@ -251,7 +256,8 @@ export const journeyApi = {
         *,
         months (*)
       `)
-      .order('months(year)', { ascending: false });
+      .order('months(year)', { ascending: false })
+      .order('months(month_num)', { ascending: false });
 
     if (error) {
       console.error('Error fetching journeys with months:', error);

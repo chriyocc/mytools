@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import iconMap from './iconMap';
+import journeyIconMap from './journeyIconMap';
 import './IconSelector.css';
 
 interface IconSelectorProps {
   name: string;
+  maps: string
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   label: string;
 }
 
-const IconSelector: React.FC<IconSelectorProps> = ({ name, value, onChange, label }) => {
+const IconSelector: React.FC<IconSelectorProps> = ({ name, maps, value, onChange, label }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedMap = maps === 'iconMap' ? iconMap : journeyIconMap;
+  
+  
 
-  const icons = Object.entries(iconMap).map(([name, svg]) => ({ name, svg }));
+  const icons = Object.entries(selectedMap ).map(([name, svg]) => ({ name, svg }));
   const selectedIcon = icons.find(icon => icon.name === value);
 
   useEffect(() => {

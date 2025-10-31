@@ -18,6 +18,10 @@
   box-sizing: border-box;
 }
 
+html.no-scroll {
+  overflow: hidden;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -73,6 +77,17 @@ body {
   padding: 0;
   font-size: 0.9rem;
   text-decoration: underline;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
 }
 
 .preview-open {

@@ -1,14 +1,30 @@
 import './Sidebar.css';
 import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
 
 const Sidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="sidebar">
+    <>
+    <div
+      className={`sidebar-overlay ${isOpen ? 'open' : 'closed'}`}
+      onClick={() => setIsOpen(!isOpen)}
+    ></div>
+    <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <h2>Dashboard</h2>
+        <button
+          className="sidebar-btn"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000ff"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm540-453h100v-107H700v107Zm0 186h100v-106H700v106ZM160-240h460v-480H160v480Zm540 0h100v-107H700v107Z"/></svg>
+        </button>
       </div>
       <nav className="sidebar-nav">
         <NavLink 
+          onClick={() => setIsOpen(!isOpen)}
           to="/projects" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
         >
@@ -18,6 +34,7 @@ const Sidebar = () => {
           Projects
         </NavLink>
         <NavLink 
+          onClick={() => setIsOpen(!isOpen)}
           to="/journey" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
         >
@@ -28,6 +45,7 @@ const Sidebar = () => {
         </NavLink>
       </nav>
     </div>
+    </>
   );
 };
 

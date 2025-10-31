@@ -3,6 +3,8 @@ import type { Database } from '../../types/database.types';
 import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import './ProjectForm.css';
+import '../../styles/CommonForm.css'
+import '../../styles/CommonCard.css'
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
 
@@ -35,8 +37,22 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const isMarkdownUploaded = !!formData.markdown_content;
   const isImageUploaded = !!formData.image;
 
+  const handleDeleteImage = () => {
+    onFileDelete('image');
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+  };
+
+   const handleDeleteMarkdown = () => {
+    onFileDelete('markdown_content');
+    if (markdownInputRef.current) {
+      markdownInputRef.current.value = '';
+    }
+  };
+
   return (
-    <form onSubmit={onSubmit} className="project-form">
+    <form onSubmit={onSubmit} className="common-form">
       {/* Overlay to prevent interaction during save */}
       {isDisabled && (
         <div 
@@ -53,21 +69,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           }}
         />
       )}
-      <div className="form-group">
+      <div className="common-form-group">
         <input
           type="text"
           name="title"
           placeholder="Project Title"
           value={formData.title || ''}
           onChange={onChange}
-          className="form-control"
+          className="common-form-control"
         />
         <textarea
           name="description"
           placeholder="Project Description"
           value={formData.description || ''}
           onChange={onChange}
-          className="form-control"
+          className="common-form-control"
         />
 
         <input
@@ -75,17 +91,19 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           name="date"
           value={formData.date || ''}
           onChange={onChange}
-          className="form-control"
+          className="common-form-control"
         />
 
         <IconSelector
           name="tool_icon1"
+          maps="iconMap"
           value={formData.tool_icon1 || ''}
           onChange={onChange}
           label="Icon 1"
         />
         <IconSelector
           name="tool_icon2"
+          maps="iconMap"
           value={formData.tool_icon2 || ''}
           onChange={onChange}
           label="Icon 2"
@@ -118,7 +136,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
               <button 
                 type="button" 
                 className="btn-underline" 
-                onClick={() => onFileDelete('markdown_content')}
+                onClick={handleDeleteMarkdown}
               >
                 Delete
               </button>
@@ -133,7 +151,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
               <button 
                 type="button" 
                 className="btn-underline" 
-                onClick={() => onFileDelete('image')}
+                onClick={handleDeleteImage}
               >
                 Delete
               </button>
@@ -142,7 +160,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         </div>
         </div>
       </div>
-      <div className="project-actions">
+      <div className="common-card-actions">
         <button type="button" className="btn btn-danger" onClick={onCancel}>
           Cancel
         </button>

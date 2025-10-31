@@ -1,0 +1,72 @@
+.common-card {
+  background-color: var(--background-light);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+  width: 400px;
+  transition: box-shadow 0.2s ease;
+}
+
+.common-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.common-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.common-card-title {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.common-card-info {
+  display: flex;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  align-items: center;
+}
+
+.common-card-fileInfo {
+  display: flex;
+  color: var(--text-secondary);
+  font-size: smaller;
+  line-height: 1;
+  max-width: 100%; 
+  overflow: hidden;   
+  white-space: nowrap;       /* Prevent wrapping to new line */
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.db-date {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.common-card-bottomBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: 1rem;
+}
+
+.common-card-actions {
+  display: flex;
+  margin-top: auto;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+
+
+

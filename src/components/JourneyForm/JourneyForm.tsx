@@ -3,16 +3,20 @@ import type { Database } from '../../types/database.types';
 import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import ActionSelector from '../ActionSelector/ActionSelector';
+import ProjectSelector from '../ProjectSelector/ProjectSelector';
 import './JourneyForm.css';
+import '../../styles/CommonForm.css'
+import '../../styles/CommonCard.css'
+import { projectApi } from '../../api/projectApi.ts';
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
 
 type JourneyInsert = Database['public']['Tables']['journey']['Insert'];
-type MonthRow = Database['public']['Tables']['months']['Row'];
 
 interface JourneyFormState extends Partial<JourneyInsert> {
   year?: number;
   month_name?: string;
+  month_num?: number;
 }
 
 interface JourneyFormProps {
@@ -21,6 +25,7 @@ interface JourneyFormProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onFileUpload: (type: 'markdown_content' | 'image_1' | 'image_2') => (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileDelete: (type: 'markdown_content' | 'image_1' | 'image_2') => void;
+  onProjectChange: (slug: string) => void;
   onCancel: () => void;
   isDisabled?: boolean;
 }
@@ -31,11 +36,13 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
   onChange,
   onFileUpload,
   onFileDelete,
+  onProjectChange,
   onCancel,
   isDisabled = false,
 }) => {
   const markdownInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  const image1InputRef = useRef<HTMLInputElement>(null);
+  const image2InputRef = useRef<HTMLInputElement>(null);
   const { openImagePreview } = useImagePreview();
   const { openMarkdownPreview } = useMarkdownPreview();
 
@@ -43,10 +50,33 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
   const isImage_1_Uploaded = !!formData.image_1;
   const isImage_2_Uploaded = !!formData.image_2;
 
-  const date = formData.month_name || '' + formData.year || ''
+  const date = `${formData.year}-${String(formData.month_num).padStart(2, '0')}`
+
+  const handleDeleteImage1 = () => {
+    // 1. Call the parent handler to clear the form data state
+    onFileDelete('image_1');
+    // 2. Clear the native browser input value to allow re-uploading the same file
+    if (image1InputRef.current) {
+      image1InputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteImage2 = () => {
+    onFileDelete('image_2');
+    if (image2InputRef.current) {
+      image2InputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteMarkdown = () => {
+    onFileDelete('markdown_content');
+    if (markdownInputRef.current) {
+      markdownInputRef.current.value = '';
+    }
+  };
 
   return (
-    <form onSubmit={onSubmit} className="journey-form">
+    <form onSubmit={onSubmit} className="common-form">
       {/* Overlay to prevent interaction during save */}
       {isDisabled && (
         <div 
@@ -63,40 +93,41 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
           }}
         />
       )}
-      <div className="form-group">
+      <div className="common-form-group">
         <input
           type="text"
           name="title"
           placeholder="JourneyTitle"
           value={formData.title || ''}
           onChange={onChange}
-          className="form-control"
+          className="common-form-control"
         />
         <textarea
           name="description"
           placeholder="Journey Description"
           value={formData.description || ''}
           onChange={onChange}
-          className="form-control"
+          className="common-form-control"
         />
 
         <input
-          type="text"
+          type="month"
           name="date"
-          placeholder="Month-Year"
-          value={date}
+          value={date || ''}
           onChange={onChange}
-          className="form-control"
+          className="common-form-control"
         />
 
         <IconSelector
-          name="tool_icon1"
+          name="type_icon1"
+          maps="journeyIconMap"
           value={formData.type_icon1 || ''}
           onChange={onChange}
           label="Icon 1"
         />
         <IconSelector
-          name="tool_icon2"
+          name="type_icon2"
+          maps="journeyIconMap"
           value={formData.type_icon2 || ''}
           onChange={onChange}
           label="Icon 2"
@@ -109,25 +140,45 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
           label='Choose Action'
         />
 
+        {(formData.action === 'link') && 
+          <input
+            type="text"
+            name="link"
+            placeholder={`Paste your link here.`}
+            value={formData.link || ''}
+            onChange={onChange}
+            className="common-form-control"
+          />
+        }
+
+        {(formData.action === 'navigate') &&
+          <ProjectSelector
+            value={formData.link || ''}
+            onChange={onProjectChange}
+            placeholder={`project-slug`}
+            fetchProjects={projectApi.getAllProjectsTitle}
+          />
+        }
+
         <div className='upload-section'>
           <FileUpload
             ref={markdownInputRef}
             accept=".md"
             onChange={onFileUpload('markdown_content')}
             label="Markdown"
-            disabled={isMarkdownUploaded}
+            disabled={(formData.action !== 'popbox') || isMarkdownUploaded}
           />
           <FileUpload
-            ref={imageInputRef}
+            ref={image1InputRef}
             accept="image/*"
-            onChange={onFileUpload('image_1')}
+            onChange={onFileUpload("image_1")}
             label="Image 1"
             disabled={isImage_1_Uploaded}
           />
           <FileUpload
-            ref={imageInputRef}
+            ref={image2InputRef}
             accept="image/*"
-            onChange={onFileUpload('image_1')}
+            onChange={onFileUpload("image_2")}
             label="Image 2"
             disabled={isImage_2_Uploaded}
           />
@@ -143,7 +194,7 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
               <button 
                 type="button" 
                 className="btn-underline" 
-                onClick={() => onFileDelete('markdown_content')}
+                onClick={handleDeleteMarkdown}
               >
                 Delete
               </button>
@@ -158,13 +209,13 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
               <button 
                 type="button" 
                 className="btn-underline" 
-                onClick={() => onFileDelete('image')}
+                onClick={handleDeleteImage1}
               >
                 Delete
               </button>
             </div>
             )}
-            {isImage_2_Uploaded && (
+          {isImage_2_Uploaded && (
             <div className="file-name-group">
               <div
                   className=" preview-open file-name"
@@ -173,7 +224,7 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
               <button 
                 type="button" 
                 className="btn-underline" 
-                onClick={() => onFileDelete('image')}
+                onClick={handleDeleteImage2}
               >
                 Delete
               </button>
@@ -182,7 +233,7 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
         </div>
         </div>
       </div>
-      <div className="journey-actions">
+      <div className="common-card-actions">
         <button type="button" className="btn btn-danger" onClick={onCancel}>
           Cancel
         </button>

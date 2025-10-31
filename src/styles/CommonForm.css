@@ -1,0 +1,57 @@
+.common-form {
+  min-width: 30rem;
+}
+
+.common-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.common-form-control {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.common-form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+textarea.common-form-control {
+  min-height: 100px;
+  max-height: fit-content;
+  resize: vertical;
+  font: inherit;
+}
+
+.upload-section {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.file-name {
+  color: #28a745;
+  font-size: 0.9rem;
+}
+
+.file-name:hover {
+  text-decoration: underline;
+}
+
+.file-name-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 5px;
+  gap: 10px;
+}
+
+input[type="month"] {
+  font: inherit;
+}
+

@@ -8,7 +8,13 @@ interface ImagePreviewProps {
 }
 
 const ImagePreview: React.FC<ImagePreviewProps> = ({ isOpen, onClose, imageUrl }) => {
-  if (!isOpen) return null;
+  const html = document.querySelector('html');
+  if (!isOpen) {
+    html?.classList.remove('no-scroll');  
+    return null
+  };
+
+  html?.classList.add('no-scroll');  
 
   return (
     <>

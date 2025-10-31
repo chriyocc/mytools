@@ -11,7 +11,13 @@ interface MarkdownPreviewProps {
 }
 
 const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ isOpen, onClose, markdownContent }) => {
-  if (!isOpen) return null;
+
+  if (!isOpen) {
+    document.querySelector('html')?.classList.remove('no-scroll');  
+    return null
+  };
+
+  document.querySelector('html')?.classList.add('no-scroll');  
   const html = marked(markdownContent);
 
   return (

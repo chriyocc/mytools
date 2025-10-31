@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../styles/CommonCard.css'
 import './ProjectCard.css';
 import iconMap from '../IconSelector/iconMap';
 import type { Database } from '../../types/database.types';
@@ -11,37 +12,37 @@ type ProjectRow = Database['public']['Tables']['projects']['Row'];
 interface ProjectCardProps {
   project: ProjectRow;
   onEdit: (project: ProjectRow) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, title: string) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
   const { openImagePreview } = useImagePreview();
   const { openMarkdownPreview } = useMarkdownPreview();
   return (
-    <div className="project-card">
-      <div className='project-card-header'>
-        <h2 className="project-title">{project.title}</h2>
-        <button onClick={() => onDelete(project.id)} className="btn-delete">
+    <div className="common-card">
+      <div className='common-card-header'>
+        <h2 className="common-card-title">{project.title}</h2>
+        <button onClick={() => onDelete(project.id, project.title)} className="btn-delete">
           <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#cf0000ff">
             <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
           </svg>
         </button>
       </div>
-      <p className="project-info">
+      <p className="common-card-info">
         {project.description}
       </p>
       {project.tool_icon1 && (
-        <p className='project-info'>
+        <p className='common-card-info'>
           <strong>Icon 1:</strong>&nbsp;<span dangerouslySetInnerHTML={{ __html: iconMap[project.tool_icon1] }} />
         </p>
       )}
       {project.tool_icon2 && (
-        <p className='project-info'>
+        <p className='common-card-info'>
           <strong>Icon 2:</strong>&nbsp;<span dangerouslySetInnerHTML={{ __html: iconMap[project.tool_icon2] }} />
         </p>
       )}
       {project.date && (
-        <div className="project-info">
+        <div className="common-card-info">
           <strong>Project Date:</strong>&nbsp; {project.date}
         </div>
       )}
@@ -56,17 +57,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             }}
           />
         )}
-        <p className='project-fileInfo'>
+        <p className='common-card-fileInfo'>
           ✓ {project.image_file} uploaded
         </p>
       </div>
-       {project.markdown_content && (
-        <p className='preview-open project-fileInfo' onClick={() => { openMarkdownPreview(project.markdown_content!); }}>
+      {project.markdown_content && (
+        <p className='preview-open common-card-fileInfo' onClick={() => { openMarkdownPreview(project.markdown_content!); }}>
           ✓ {project.markdown_file} uploaded
         </p>
       )}
-      <div className="project-bottomBar">
-        <div className='project-dateWrapper'>
+      <div className="common-card-bottomBar">
+        <div className='common-card-dateWrapper'>
           <div className="db-date">
             Created at: {project.created_at && new Date(project.created_at).toLocaleString("en-US", {
               dateStyle: "long",
@@ -80,7 +81,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             })}
           </div>
         </div>
-        <div className="project-actions">
+        <div className="common-card-actions">
         <button onClick={() => onEdit(project)} className="btn btn-primary">
           Edit
         </button>

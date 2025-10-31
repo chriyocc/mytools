@@ -53,44 +53,47 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({ name, value, onChange, 
   };
 
   return (
-    <div ref={containerRef} className="action-selector-container">
-      <label className="action-selector-label">
-        {label}
-      </label>
-      <div onClick={handleToggle} className="action-selector-button">
-        {selectedAction ? (
-          <div className="action-selector-selected">
-            <span className="action-selector-text">{selectedAction.name}</span>
+    <>
+      <div ref={containerRef} className="action-selector-container">
+        <label className="action-selector-label">
+          {label}
+        </label>
+        <div onClick={handleToggle} className="action-selector-button">
+          {selectedAction ? (
+            <div className="action-selector-selected">
+              <span className="action-selector-text">{selectedAction.name}</span>
+            </div>
+          ) : (
+            <span className="action-selector-placeholder">Select an action</span>
+          )}
+        </div>
+        
+        {isOpen && (
+          <div className="action-selector-dropdown">
+            {actions.map((action) => (
+              <div
+                key={action.name}
+                onClick={() => {
+                  const newValue = value === action.name ? '' : action.name;
+                  const syntheticEvent = {
+                    target: { name, value: newValue }
+                  } as React.ChangeEvent<HTMLSelectElement>;
+                  onChange(syntheticEvent);
+                  setIsOpen(false);
+                }}
+                className={`action-selector-option ${value === action.name ? 'selected' : ''}`}
+              >
+                <div 
+                  className="action-selector-action"
+                />
+                <span className="action-selector-text">{action.name}</span>
+              </div>
+            ))}
           </div>
-        ) : (
-          <span className="action-selector-placeholder">Select an action</span>
         )}
       </div>
       
-      {isOpen && (
-        <div className="action-selector-dropdown">
-          {actions.map((action) => (
-            <div
-              key={action.name}
-              onClick={() => {
-                const newValue = value === action.name ? '' : action.name;
-                const syntheticEvent = {
-                  target: { name, value: newValue }
-                } as React.ChangeEvent<HTMLSelectElement>;
-                onChange(syntheticEvent);
-                setIsOpen(false);
-              }}
-              className={`action-selector-option ${value === action.name ? 'selected' : ''}`}
-            >
-              <div 
-                className="action-selector-action"
-              />
-              <span className="action-selector-text">{action.name}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 

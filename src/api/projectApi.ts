@@ -15,6 +15,15 @@ export const projectApi = {
     return data as ProjectRow[];
   },
 
+  async getAllProjectsTitle() {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('title, slug');
+    
+    if (error) throw error;
+    return data as { title: string; slug: string }[];
+  },
+
   async create(project: ProjectInsert) {
     const { data, error } = await supabase
       .from('projects')

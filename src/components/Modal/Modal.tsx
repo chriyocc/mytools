@@ -9,8 +9,14 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
-  if (!isOpen) return null;
+  const html = document.querySelector('html');
+  if (!isOpen) {
+    html?.classList.remove('no-scroll');  
+    return null
+  };
 
+  html?.classList.add('no-scroll');  
+  
   return (
     <>
       <div className="modal-overlay"></div>

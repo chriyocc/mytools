@@ -4,7 +4,7 @@ import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 
 interface ConfirmModalProps {
   title: string;
-  message: string;
+  message: ReactNode;
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'warning' | 'info';

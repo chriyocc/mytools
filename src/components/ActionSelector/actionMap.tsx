@@ -1,5 +1,5 @@
 const actionMap: { [key: string]: string } = {
-  popup: 'popup',
+  popbox: 'popbox',
   navigate: 'navigate',
   link: 'link'
 };

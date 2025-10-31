@@ -270,10 +270,14 @@ const ProjectsDashboard = () => {
     setIsModalOpen(true);
   };
 
-  const handleProjectDelete = async (id: string) => {
+  const handleProjectDelete = async (id: string, title: string) => {
     const confirmed = await confirm({
       title: 'Delete Project',
-      message: 'Are you sure you want to delete this project?',
+      message: (
+        <>
+          Are you sure you want to delete <strong>{title}</strong>?
+        </>
+      ),
       confirmText: 'Delete',
       type: 'danger',
     });
@@ -353,7 +357,7 @@ const ProjectsDashboard = () => {
       formData.pending_image_file !== undefined ||
       formData.image_deleted === true;
 
-    if (hasChanges && formData.id === undefined) {
+    if (hasChanges && formData.id !== undefined) {
       const confirmed = await confirm({
         title: 'Discard Changes',
         message: 'You have unsaved changes. Are you sure you want to discard them?',

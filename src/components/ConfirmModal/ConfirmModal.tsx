@@ -1,11 +1,12 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 import './ConfirmModal.css';
 
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'warning' | 'info';
