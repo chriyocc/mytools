@@ -7,6 +7,7 @@ import '../../styles/CommonForm.css'
 import '../../styles/CommonCard.css'
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
+import { downloadMarkdownFromTitle } from '../../utils/downloadMarkdown.ts';
 
 type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
 
@@ -135,7 +136,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 >✓ {formData.markdown_file} uploaded</div>
               <button 
                 type="button" 
-                className="btn-underline" 
+                className="btn-underline primary" 
+                onClick={() => downloadMarkdownFromTitle(formData.markdown_content || '', formData.title || 'default_name')}
+              >
+                Download
+              </button>
+              <button 
+                type="button" 
+                className="btn-underline danger" 
                 onClick={handleDeleteMarkdown}
               >
                 Delete
@@ -150,7 +158,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 >✓ {formData.image_file} uploaded</div>
               <button 
                 type="button" 
-                className="btn-underline" 
+                className="btn-underline danger" 
                 onClick={handleDeleteImage}
               >
                 Delete
@@ -168,6 +176,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           {formData.id !== undefined ? 'Update' : 'Add'} Project
         </button>
       </div>
+      
     </form>
   );
 };

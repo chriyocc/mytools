@@ -36,7 +36,7 @@ export async function uploadToCloudinary(
   folder: string = 'project_imgs'
 ): Promise<{ secure_url: string; public_id: string }> {
   // Get signature from backend
-  const sigResponse = await fetch(`${apiBaseUrl}/signature`, {
+  const sigResponse = await fetch(`${apiBaseUrl}/images/signature`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ folder }),
@@ -79,7 +79,7 @@ export async function uploadToCloudinary(
  * @returns Success boolean
  */
 export async function deleteFromCloudinary(publicId: string): Promise<boolean> {
-  const response = await fetch(`${apiBaseUrl}/delete`, {
+  const response = await fetch(`${apiBaseUrl}/images/delete`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -95,5 +95,22 @@ export async function deleteFromCloudinary(publicId: string): Promise<boolean> {
     return true;
   } else {
     throw new Error(data.error || 'Delete failed');
+  }
+}
+
+export async function getAllImages() {
+  const response = await fetch(`${apiBaseUrl}/images`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const data = await response.json();
+
+  if (data.success) {
+    return data.data;
+  } else {
+    throw new Error(data.error || 'Failed to get');
   }
 }

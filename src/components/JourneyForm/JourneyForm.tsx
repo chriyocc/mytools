@@ -10,6 +10,7 @@ import '../../styles/CommonCard.css'
 import { projectApi } from '../../api/projectApi.ts';
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
+import { downloadMarkdownFromTitle } from '../../utils/downloadMarkdown.ts';
 
 type JourneyInsert = Database['public']['Tables']['journey']['Insert'];
 
@@ -193,7 +194,14 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
                 >✓ {formData.markdown_file} uploaded</div>
               <button 
                 type="button" 
-                className="btn-underline" 
+                className="btn-underline primary" 
+                onClick={() => downloadMarkdownFromTitle(formData.markdown_content || '', formData.title || '')}
+              >
+                Download
+              </button>
+              <button 
+                type="button" 
+                className="btn-underline danger" 
                 onClick={handleDeleteMarkdown}
               >
                 Delete
@@ -208,7 +216,7 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
                 >✓ {formData.image1_file} uploaded</div>
               <button 
                 type="button" 
-                className="btn-underline" 
+                className="btn-underline danger" 
                 onClick={handleDeleteImage1}
               >
                 Delete
@@ -223,7 +231,7 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
                 >✓ {formData.image2_file} uploaded</div>
               <button 
                 type="button" 
-                className="btn-underline" 
+                className="btn-underline danger" 
                 onClick={handleDeleteImage2}
               >
                 Delete

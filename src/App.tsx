@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProjectsDashboard from './pages/ProjectsDashboard/ProjectsDashboard.tsx';
 import JourneyDashboard from './pages/JourneyDashboard/JourneyDashboard';
+import ImagesDashboard from './pages/ImagesDashboard/ImagesDashboard';
 import Sidebar from './components/Sidebar/Sidebar';
 import { Toaster } from 'react-hot-toast';
 import { ConfirmProvider } from './utils/confirmModalContext';
@@ -45,6 +46,7 @@ const App = () => {
                     <Route path="/" element={<Navigate to="/projects" replace />} />
                     <Route path="/projects" element={<ProjectsDashboard />} />
                     <Route path="/journey" element={<JourneyDashboard />} />
+                    <Route path="/images" element={<ImagesDashboard />} />
                   </Routes>
                 </main>
               </div>

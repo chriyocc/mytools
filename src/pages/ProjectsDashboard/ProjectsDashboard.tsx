@@ -55,6 +55,7 @@ const ProjectsDashboard = () => {
   const { confirm } = useConfirm();
 
   const originalImagePublicIdRef = useRef<string>('');
+  const originalFormDataRef = useRef<ProjectFormState>({ ...EMPTY_PROJECT_FORM });
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -178,7 +179,7 @@ const ProjectsDashboard = () => {
         // New image selected - upload it
         toastId = toast.loading('Uploading image...');
         
-        const uploadResult = await uploadToCloudinary(formData.pending_image_file);
+        const uploadResult = await uploadToCloudinary(formData.pending_image_file, 'project_imgs');
         finalImageUrl = uploadResult.secure_url;
         finalImagePublicId = uploadResult.public_id;
         
@@ -261,11 +262,16 @@ const ProjectsDashboard = () => {
       toast.error('Invalid project data');
       return;
     }
-    setFormData({
+
+    const initialFormData = {
       ...project,
       pending_image_file: undefined,
       image_deleted: false,
-    });
+    }
+
+    setFormData(initialFormData);
+    originalFormDataRef.current = { ...initialFormData };
+
     originalImagePublicIdRef.current = project.image_public_id || '';
     setIsModalOpen(true);
   };
@@ -350,14 +356,20 @@ const ProjectsDashboard = () => {
     if (isSaving) return;
 
     // Check if there are unsaved changes
-    const hasChanges = 
-      formData.title !== EMPTY_PROJECT_FORM.title ||
-      formData.description !== EMPTY_PROJECT_FORM.description ||
-      formData.markdown_content !== EMPTY_PROJECT_FORM.markdown_content ||
-      formData.pending_image_file !== undefined ||
-      formData.image_deleted === true;
+    const normalize = (v: any) => {
+      if (v === undefined || v === null) return '';
+      if (typeof v === 'number') return String(v);
+      return v;
+    };
 
-    if (hasChanges && formData.id !== undefined) {
+    const hasChanges =
+      (Object.keys(originalFormDataRef.current) as Array<keyof ProjectFormState>).some(
+        (key) => normalize(formData[key]) !== normalize(originalFormDataRef.current[key])
+      ) ||
+      !!formData.pending_image_file ||
+      formData.image_deleted === true
+
+    if (hasChanges) {
       const confirmed = await confirm({
         title: 'Discard Changes',
         message: 'You have unsaved changes. Are you sure you want to discard them?',
@@ -379,6 +391,7 @@ const ProjectsDashboard = () => {
 
   const handleAddNew = () => {
     setFormData(EMPTY_PROJECT_FORM);
+    originalFormDataRef.current = { ...EMPTY_PROJECT_FORM };
     originalImagePublicIdRef.current = '';
     setIsModalOpen(true);
   };

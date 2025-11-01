@@ -31,6 +31,7 @@
   transform: translate(-50%, -50%);
   max-height: var(--max-height);
   min-width: var(--min-width);
+  max-width: var(--max-width);
   min-height: var(--min-height);
   background-color: var(--modal-bg);
   border-radius: var(--modal-radius);

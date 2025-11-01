@@ -24,13 +24,15 @@ const ProjectSelector = ({
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const baseUrl = '/projects/';
+  const basePath = '/projects/';
+
 
   useEffect(() => {
     loadProjects();
   }, []);
 
   useEffect(() => {
+
     // Filter projects based on input value
     if (value) {
       const filtered = projects.filter(project =>
@@ -82,8 +84,8 @@ const ProjectSelector = ({
   return (
     <div className="project-selector-container" ref={wrapperRef}>
       <div className="project-selector-input-wrapper">
-        {baseUrl && (
-          <span className="project-selector-prefix">{baseUrl}</span>
+        {basePath && (
+          <span className="project-selector-prefix">{basePath}</span>
         )}
         <input
           type="text"

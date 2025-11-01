@@ -1,0 +1,119 @@
+.image-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  width: 100%;
+  max-width: 330px;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.image-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.image-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.image-card:hover .image-card-image {
+  transform: scale(1.05);
+}
+
+.image-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent 30%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.image-card:hover::after {
+  opacity: 1;
+}
+
+.image-card-caption {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+.image-card-overlay {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 3;
+}
+
+.image-card:hover .image-card-caption {
+  text-shadow: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Action buttons container */
+.image-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 4;
+}
+
+.image-card:hover .image-card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Wrapper so tooltip can position absolutely */
+.info-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip box */
+.info-box {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  width: 180px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 4;
+  opacity: 0;
+  transform: translateY(-4px);
+  animation: fadeIn 0.25s ease forwards;
+}
+
+/* Small fade-in animation */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

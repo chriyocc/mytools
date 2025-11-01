@@ -47,9 +47,8 @@ body {
 }
 
 .btn:disabled {
-  background-color: #f1f1f1; /* Light gray background */
   cursor: not-allowed; /* Change cursor to indicate no interaction */
-  opacity: 0.6; /* Reduce opacity for a faded look */
+  opacity: 0.3; /* Reduce opacity for a faded look */
 }
 
 
@@ -72,11 +71,45 @@ body {
 .btn-underline {
   background: none;
   border: none;
-  color: red;
   cursor: pointer;
   padding: 0;
   font-size: 0.9rem;
   text-decoration: underline;
+}
+
+.btn-underline.danger {
+  color: red;
+}
+
+.btn-underline.primary {
+  color: var(--primary-color);
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  position: relative;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.icon-btn:hover {
+  background: rgba(200, 200, 200, 0.5);
+  svg {
+    fill: #000;
+  }
+}
+
+.icon-btn.delete:hover{
+  svg {
+    fill: #ff0000;
+  }
 }
 
 .btn-delete {
@@ -97,6 +130,12 @@ body {
 .preview-open:hover {
   opacity: 0.8;
 }
+
+input:disabled {
+  cursor: not-allowed; /* Change cursor to indicate no interaction */
+  opacity: 0.5; /* Reduce opacity for a faded look */
+}
+
 
 @keyframes modal-pop {
   from {

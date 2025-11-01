@@ -55,7 +55,7 @@ const REQUIRED_JOURNEY_FIELDS: (keyof JourneyInsert)[] = [
 const JourneyDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false); 
-  const [formData, setFormData] = useState<JourneyFormState>(EMPTY_JOURNEY_FORM);
+  const [formData, setFormData] = useState<JourneyFormState>({ ...EMPTY_JOURNEY_FORM });
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
   const { confirm } = useConfirm();
   const [journeys, setJourneys] = useState<JourneyRow[]>([]);
@@ -64,6 +64,8 @@ const JourneyDashboard = () => {
 
   const originalImage1PublicIdRef = useRef<string>('');
   const originalImage2PublicIdRef = useRef<string>('');
+
+  const originalFormDataRef = useRef<JourneyFormState>({ ...EMPTY_JOURNEY_FORM });
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -172,7 +174,6 @@ const JourneyDashboard = () => {
   };
 
   const handleProjectChange = (slug: string) => {
-
     setFormData({ ...formData, link: slug });
   };
 
@@ -323,6 +324,8 @@ const JourneyDashboard = () => {
         action: formData.action || '',
         link: finalFullLink || '',
         title: formData.title!,
+        markdown_content: formData.markdown_content || '',
+        markdown_file: formData.markdown_file || '',
         description: formData.description!,
         type_icon1: formData.type_icon1 || '',
         type_icon2: formData.type_icon2 || '',
@@ -372,18 +375,30 @@ const JourneyDashboard = () => {
       toast.error('Invalid journey data');
       return;
     }
+
+    const cleanValue = (input: string) => {
+      if (input.startsWith('/projects/')) {
+        return input.replace('/projects/', '');
+      }
+      return input;
+    };
     // Find the month details for this journey
     const month = months.find(m => m.id === journey.month_id);
-    
-    setFormData({
+
+    const initialFormData = {
       ...journey,
+      link: cleanValue(journey.link || ''),
       year: month?.year,
       month_num: month?.month_num ?? undefined,
       pending_image1_file: undefined,
       image1_deleted: false,
       pending_image2_file: undefined,
       image2_deleted: false,
-    });
+    };
+  
+    
+    setFormData(initialFormData);
+    originalFormDataRef.current = { ...initialFormData };
 
     originalImage1PublicIdRef.current = journey.image1_public_id || '';
     originalImage2PublicIdRef.current = journey.image2_public_id || '';
@@ -479,27 +494,28 @@ const JourneyDashboard = () => {
   };
 
   const handleCancel = async () => {
-    // Don't allow cancel during save
+      // Don't allow cancel during save
     if (isSaving) return;
 
     // Check if there are unsaved changes
-    const hasChanges = 
-      formData.title !== EMPTY_JOURNEY_FORM.title ||
-      formData.description !== EMPTY_JOURNEY_FORM.description ||
-      formData.action !== EMPTY_JOURNEY_FORM.action ||
-      formData.link !== EMPTY_JOURNEY_FORM.link ||
-      formData.type_icon1 !== EMPTY_JOURNEY_FORM.type_icon1 ||
-      formData.type_icon2 !== EMPTY_JOURNEY_FORM.type_icon2 ||
-      formData.markdown_content !== EMPTY_JOURNEY_FORM.markdown_content ||
-      formData.pending_image1_file !== undefined ||
+    const normalize = (v: any) => {
+      if (v === undefined || v === null) return '';
+      if (typeof v === 'number') return String(v);
+      return v;
+    };
+
+    const hasChanges =
+      (Object.keys(originalFormDataRef.current) as Array<keyof JourneyFormState>).some(
+        (key) => normalize(formData[key]) !== normalize(originalFormDataRef.current[key])
+      ) ||
+      !!formData.pending_image1_file ||
+      !!formData.pending_image2_file ||
       formData.image1_deleted === true ||
-      formData.pending_image2_file !== undefined ||
-      formData.image2_deleted === true ||
-      formData.month_num !== EMPTY_JOURNEY_FORM.month_num ||
-      formData.year !== EMPTY_JOURNEY_FORM.year ||
-      formData.month_id !== EMPTY_JOURNEY_FORM.month_id;
+      formData.image2_deleted === true;
+
+
     
-    if (hasChanges && formData.id !== undefined) {
+    if (hasChanges) {
       const confirmed = await confirm({
         title: 'Discard Changes',
         message: 'You have unsaved changes. Are you sure you want to discard them?',
@@ -524,6 +540,7 @@ const JourneyDashboard = () => {
 
   const handleAddNew = () => {
     setFormData(EMPTY_JOURNEY_FORM);
+    originalFormDataRef.current = { ...EMPTY_JOURNEY_FORM };
     originalImage1PublicIdRef.current = '';
     originalImage2PublicIdRef.current = '';
     setIsModalOpen(true);
