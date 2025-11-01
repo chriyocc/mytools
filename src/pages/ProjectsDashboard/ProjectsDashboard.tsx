@@ -49,7 +49,7 @@ const REQUIRED_PROJECT_FIELDS: (keyof ProjectInsert)[] = [
 const ProjectsDashboard = () => {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false); // Track saving state
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<ProjectFormState>(EMPTY_PROJECT_FORM);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { confirm } = useConfirm();
@@ -59,20 +59,19 @@ const ProjectsDashboard = () => {
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Always prevent if saving
       if (isSaving) {
         e.preventDefault();
         e.returnValue = 'Upload in progress. Are you sure you want to leave?';
         return e.returnValue;
       }
 
-      // Also prevent if modal is open with unsaved changes
       if (isModalOpen) {
         const hasChanges = 
           formData.title !== EMPTY_PROJECT_FORM.title ||
           formData.description !== EMPTY_PROJECT_FORM.description ||
           formData.markdown_content !== EMPTY_PROJECT_FORM.markdown_content ||
           formData.pending_image_file !== undefined ||
+          formData.image !== EMPTY_PROJECT_FORM.image ||
           formData.image_deleted === true;
 
         if (hasChanges) {
@@ -120,6 +119,32 @@ const ProjectsDashboard = () => {
         return;
       }
       
+      // Handle image URL input
+      if (name === 'image') {
+        if (value) {
+          // URL was pasted/entered
+          const filename = value.split('/').pop()?.split('?')[0] || 'image-url';
+          setFormData({ 
+            ...formData, 
+            image: value,
+            image_file: filename,
+            image_public_id: '', // URLs don't have Cloudinary public IDs
+            pending_image_file: undefined, // Clear any pending file
+            image_deleted: false,
+          });
+          console.log(formData);
+          
+        } else {
+          // URL was cleared
+          setFormData({ 
+            ...formData, 
+            image: '',
+            image_file: '',
+          });
+        }
+        return;
+      }
+      
       setFormData({ ...formData, [name]: value });
     } catch (error) {
       console.error('Error updating form field:', error);
@@ -143,12 +168,13 @@ const ProjectsDashboard = () => {
         });
         toast.success('Markdown file loaded!');
       } else {
+        // Create a blob URL for preview
         const imageUrl = URL.createObjectURL(file);
         setFormData({
           ...formData,
-          image: imageUrl,
+          image: imageUrl, // Store blob URL for preview
           image_file: fileName,
-          pending_image_file: file,
+          pending_image_file: file, // Store file for upload
           image_deleted: false,
         });
         toast.success('Image selected! Will upload on save.');
@@ -176,7 +202,7 @@ const ProjectsDashboard = () => {
 
       // Handle image upload/deletion
       if (formData.pending_image_file) {
-        // New image selected - upload it
+        // New file selected - upload to Cloudinary
         toastId = toast.loading('Uploading image...');
         
         const uploadResult = await uploadToCloudinary(formData.pending_image_file, 'project_imgs');
@@ -185,7 +211,7 @@ const ProjectsDashboard = () => {
         
         toast.success('Image uploaded!', { id: toastId });
 
-        // Delete old image if this is an edit and there was a previous image
+        // Delete old image if this is an edit and there was a previous Cloudinary image
         if (formData.id !== undefined && originalImagePublicIdRef.current) {
           try {
             toastId = toast.loading('Removing old image...');
@@ -194,7 +220,22 @@ const ProjectsDashboard = () => {
           } catch (error) {
             console.error('Failed to delete old image:', error);
             toast.dismiss(toastId);
-            // Continue anyway - new image is uploaded
+          }
+        }
+      } else if (formData.image && !formData.image.startsWith('blob:')) {
+        // URL was provided (not a blob URL)
+        finalImageUrl = formData.image;
+        finalImagePublicId = ''; // URLs don't have public IDs
+        
+        // If editing and replacing a Cloudinary image with a URL, delete the old Cloudinary image
+        if (formData.id !== undefined && originalImagePublicIdRef.current) {
+          try {
+            toastId = toast.loading('Removing old Cloudinary image...');
+            await deleteFromCloudinary(originalImagePublicIdRef.current);
+            toast.success('Old image removed!', { id: toastId });
+          } catch (error) {
+            console.error('Failed to delete old image:', error);
+            toast.dismiss(toastId);
           }
         }
       } else if (formData.image_deleted && originalImagePublicIdRef.current) {
@@ -263,15 +304,14 @@ const ProjectsDashboard = () => {
       return;
     }
 
-    const initialFormData = {
+    const initialFormData: ProjectFormState = {
       ...project,
       pending_image_file: undefined,
       image_deleted: false,
-    }
+    };
 
     setFormData(initialFormData);
     originalFormDataRef.current = { ...initialFormData };
-
     originalImagePublicIdRef.current = project.image_public_id || '';
     setIsModalOpen(true);
   };
@@ -303,6 +343,19 @@ const ProjectsDashboard = () => {
           console.error('Cloudinary deletion error:', error);
           toast.error('Failed to delete image, but will continue...', { id: toastId });
         }
+      } else {
+        const confirmed = await confirm({
+          title: "Can't Delete Image",
+          message: (
+            <>
+              PublicID does not esist. Are you sure you want to continue delete?<br></br>
+              <strong>{project.image_file}</strong>
+            </>
+          ),
+          confirmText: 'Delete',
+          type: 'danger',
+        });
+        if (!confirmed) return;
       }
 
       // Delete project from database
@@ -334,7 +387,7 @@ const ProjectsDashboard = () => {
       });
       toast.success('Markdown file removed.');
     } else {
-      // Revoke object URL if it exists
+      // Revoke blob URL if it exists
       if (formData.image && formData.image.startsWith('blob:')) {
         URL.revokeObjectURL(formData.image);
       }
@@ -352,10 +405,8 @@ const ProjectsDashboard = () => {
   };
 
   const handleCancel = async () => {
-    // Don't allow cancel during save
     if (isSaving) return;
 
-    // Check if there are unsaved changes
     const normalize = (v: any) => {
       if (v === undefined || v === null) return '';
       if (typeof v === 'number') return String(v);
@@ -367,7 +418,7 @@ const ProjectsDashboard = () => {
         (key) => normalize(formData[key]) !== normalize(originalFormDataRef.current[key])
       ) ||
       !!formData.pending_image_file ||
-      formData.image_deleted === true
+      formData.image_deleted === true;
 
     if (hasChanges) {
       const confirmed = await confirm({
@@ -419,7 +470,7 @@ const ProjectsDashboard = () => {
           onFileUpload={handleFileUpload}
           onFileDelete={handleFileDelete}
           onCancel={handleCancel}
-          isDisabled={isSaving} // Pass saving state to disable form
+          isDisabled={isSaving}
         />
       </Modal>
 

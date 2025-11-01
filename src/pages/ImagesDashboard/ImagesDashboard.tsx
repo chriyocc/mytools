@@ -164,7 +164,7 @@ const ImagesDashboard = () => {
     }
   };
 
-  const handleDelete = async (publicId: string, url: string) => {
+  const handleDelete = async (publicId: string) => {
     const confirmed = await confirm({
       title: 'Delete Image',
       message: (

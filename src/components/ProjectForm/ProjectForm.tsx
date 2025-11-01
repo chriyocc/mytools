@@ -2,10 +2,10 @@ import React, { useRef } from 'react';
 import type { Database } from '../../types/database.types';
 import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
+import InputUpload from '../InputUpload/InputUpload.tsx';
 import './ProjectForm.css';
 import '../../styles/CommonForm.css'
 import '../../styles/CommonCard.css'
-import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
 import { downloadMarkdownFromTitle } from '../../utils/downloadMarkdown.ts';
 
@@ -32,16 +32,18 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 }) => {
   const markdownInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { openImagePreview } = useImagePreview();
+  const imageFileInputRef = useRef<HTMLInputElement>(null); 
   const { openMarkdownPreview } = useMarkdownPreview();
 
   const isMarkdownUploaded = !!formData.markdown_content;
-  const isImageUploaded = !!formData.image;
 
   const handleDeleteImage = () => {
     onFileDelete('image');
     if (imageInputRef.current) {
       imageInputRef.current.value = '';
+    }
+    if (imageFileInputRef.current) {
+      imageFileInputRef.current.value = '';
     }
   };
 
@@ -95,19 +97,33 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           className="common-form-control"
         />
 
-        <IconSelector
-          name="tool_icon1"
-          maps="iconMap"
-          value={formData.tool_icon1 || ''}
+        <div className="icon-section-wrapper">
+          <IconSelector
+            name="tool_icon1"
+            maps="iconMap"
+            value={formData.tool_icon1 || ''}
+            onChange={onChange}
+            label="Icon 1"
+          />
+          <IconSelector
+            name="tool_icon2"
+            maps="iconMap"
+            value={formData.tool_icon2 || ''}
+            onChange={onChange}
+            label="Icon 2"
+            />
+        </div>
+
+        <InputUpload
+          ref={imageInputRef}
+          name="image"
+          accept="image/*"
+          value={formData.image || ''}
+          fileName={formData.image_file || ''}
           onChange={onChange}
-          label="Icon 1"
-        />
-        <IconSelector
-          name="tool_icon2"
-          maps="iconMap"
-          value={formData.tool_icon2 || ''}
-          onChange={onChange}
-          label="Icon 2"
+          onFileUpload={onFileUpload('image')}
+          onFileDelete={handleDeleteImage}
+          placeholder="Upload or paste image URL here"
         />
 
         <div className='upload-section'>
@@ -117,13 +133,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             onChange={onFileUpload('markdown_content')}
             label="Markdown"
             disabled={isMarkdownUploaded}
-          />
-          <FileUpload
-            ref={imageInputRef}
-            accept="image/*"
-            onChange={onFileUpload('image')}
-            label="Image"
-            disabled={isImageUploaded}
           />
         </div>
         <div>
@@ -145,21 +154,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 type="button" 
                 className="btn-underline danger" 
                 onClick={handleDeleteMarkdown}
-              >
-                Delete
-              </button>
-            </div>
-          )}
-          {isImageUploaded && (
-            <div className="file-name-group">
-              <div
-                  className=" preview-open file-name"
-                  onClick={() => openImagePreview(formData.image!)}
-                >✓ {formData.image_file} uploaded</div>
-              <button 
-                type="button" 
-                className="btn-underline danger" 
-                onClick={handleDeleteImage}
               >
                 Delete
               </button>

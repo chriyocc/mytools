@@ -128,6 +128,36 @@ const JourneyDashboard = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     try {
       const { name, value } = e.target;
+
+      // Handle image URL input
+      if (name === 'image_1' || name === 'image_2') {
+        const imageNum = name === 'image_1' ? '1' : '2';
+        if (value) {
+          // URL was pasted/entered
+          const filename = value.split('/').pop()?.split('?')[0] || 'image-url';
+          setFormData({ 
+            ...formData, 
+            [`image_${imageNum}`]: value,
+            [`image${imageNum}_file`]: filename,
+            [`image${imageNum}_public_id`]: '', // URLs don't have Cloudinary public IDs
+            [`pending_image${imageNum}_file`]: undefined, // Clear any pending file
+            [`image${imageNum}_deleted`]: false,
+          });
+          
+        } else {
+          // URL was cleared
+          setFormData({ 
+            ...formData, 
+            [`image_${imageNum}`]: '',
+            [`image${imageNum}_file`]: '',
+            [`image${imageNum}_public_id`]: '',
+            [`pending_image${imageNum}_file`]: undefined,
+            [`image${imageNum}_deleted`]: false,
+          });
+        }
+        return;
+      }
+
       
       if (name === 'date') {
         const [year, month_num] = value.split('-');
@@ -155,7 +185,10 @@ const JourneyDashboard = () => {
             month_num: monthNum
           });
         }
-      } else if (name === 'action') {
+        return;
+      }
+
+      if (name === 'action') {
         setFormData({
           ...formData,
           action: value,
@@ -163,9 +196,10 @@ const JourneyDashboard = () => {
           markdown_content: '',
           markdown_file: ''
         })
-      } else {
-        setFormData({ ...formData, [name]: value });
-      }
+        return;
+      } 
+
+      setFormData({ ...formData, [name]: value });
       
     } catch (error) {
       console.error('Error updating form field:', error);
@@ -447,6 +481,27 @@ const JourneyDashboard = () => {
           console.error('Cloudinary deletion error:', error);
           toast.error('Failed to delete image 2, but will continue...', { id: toastId });
         }
+      }
+
+      if (!journey.image1_public_id || !journey.image2_public_id) {
+        const confirmed = await confirm({
+          title: "Can't Delete Image",
+          message: (
+            <>
+              PublicID does not esist. Are you sure you want to continue delete?<br></br>
+              {journey.image1_file && 
+                (<strong>Image 1: {journey.image1_file}</strong>)
+              }
+              <br></br>
+              {journey.image2_file && 
+                (<strong>Image 2: {journey.image2_file}</strong>)
+              }
+            </>
+          ),
+          confirmText: 'Delete',
+          type: 'danger',
+        });
+        if (!confirmed) return;
       }
 
       // Delete journey from database

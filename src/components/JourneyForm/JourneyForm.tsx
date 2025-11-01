@@ -4,11 +4,11 @@ import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import ActionSelector from '../ActionSelector/ActionSelector';
 import SearchSelector from '../SearchSelector/SearchSelector';
+import InputUpload from '../InputUpload/InputUpload.tsx';
 import './JourneyForm.css';
 import '../../styles/CommonForm.css'
 import '../../styles/CommonCard.css'
 import { projectApi } from '../../api/projectApi.ts';
-import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
 import { useMarkdownPreview } from '../MarkdownPreview/markdownPreviewContext.tsx';
 import { downloadMarkdownFromTitle } from '../../utils/downloadMarkdown.ts';
 
@@ -43,8 +43,9 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
 }) => {
   const markdownInputRef = useRef<HTMLInputElement>(null);
   const image1InputRef = useRef<HTMLInputElement>(null);
+  const image1FileInputRef = useRef<HTMLInputElement>(null); 
   const image2InputRef = useRef<HTMLInputElement>(null);
-  const { openImagePreview } = useImagePreview();
+  const image2FileInputRef = useRef<HTMLInputElement>(null); 
   const { openMarkdownPreview } = useMarkdownPreview();
 
   const isMarkdownUploaded = !!formData.markdown_content;
@@ -60,12 +61,18 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
     if (image1InputRef.current) {
       image1InputRef.current.value = '';
     }
+    if (image1FileInputRef.current) {
+      image1FileInputRef.current.value = '';
+    }
   };
 
   const handleDeleteImage2 = () => {
     onFileDelete('image_2');
     if (image2InputRef.current) {
       image2InputRef.current.value = '';
+    }
+    if (image2FileInputRef.current) {
+      image2FileInputRef.current.value = '';
     }
   };
 
@@ -118,21 +125,22 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
           onChange={onChange}
           className="common-form-control"
         />
-
-        <IconSelector
-          name="type_icon1"
-          maps="journeyIconMap"
-          value={formData.type_icon1 || ''}
-          onChange={onChange}
-          label="Icon 1"
-        />
-        <IconSelector
-          name="type_icon2"
-          maps="journeyIconMap"
-          value={formData.type_icon2 || ''}
-          onChange={onChange}
-          label="Icon 2"
-        />
+        <div className="icon-section-wrapper">
+          <IconSelector
+            name="type_icon1"
+            maps="journeyIconMap"
+            value={formData.type_icon1 || ''}
+            onChange={onChange}
+            label="Icon 1"
+          />
+          <IconSelector
+            name="type_icon2"
+            maps="journeyIconMap"
+            value={formData.type_icon2 || ''}
+            onChange={onChange}
+            label="Icon 2"
+            />
+          </div>
 
         <ActionSelector
           name="action"
@@ -170,6 +178,30 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
             )}
           />
         }
+
+        <InputUpload
+          ref={image1InputRef}
+          name="image_1"
+          accept="image/*"
+          value={formData.image_1 || ''}
+          fileName={formData.image1_file || ''}
+          onChange={onChange}
+          onFileUpload={onFileUpload('image_1')}
+          onFileDelete={handleDeleteImage1}
+          placeholder="Upload or paste image URL here"
+        ></InputUpload>
+
+        <InputUpload
+          ref={image2InputRef}
+          name="image_2"
+          accept="image/*"
+          value={formData.image_2 || ''}
+          fileName={formData.image2_file || ''}
+          onChange={onChange}
+          onFileUpload={onFileUpload('image_2')}
+          onFileDelete={handleDeleteImage2}
+          placeholder="Upload or paste image URL here"
+        ></InputUpload>
 
         <div className='upload-section'>
           <FileUpload
@@ -213,36 +245,6 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
                 type="button" 
                 className="btn-underline danger" 
                 onClick={handleDeleteMarkdown}
-              >
-                Delete
-              </button>
-            </div>
-          )}
-          {isImage_1_Uploaded && (
-            <div className="file-name-group">
-              <div
-                  className=" preview-open file-name"
-                  onClick={() => openImagePreview(formData.image_1!)}
-                >✓ {formData.image1_file} uploaded</div>
-              <button 
-                type="button" 
-                className="btn-underline danger" 
-                onClick={handleDeleteImage1}
-              >
-                Delete
-              </button>
-            </div>
-            )}
-          {isImage_2_Uploaded && (
-            <div className="file-name-group">
-              <div
-                  className=" preview-open file-name"
-                  onClick={() => openImagePreview(formData.image_2!)}
-                >✓ {formData.image2_file} uploaded</div>
-              <button 
-                type="button" 
-                className="btn-underline danger" 
-                onClick={handleDeleteImage2}
               >
                 Delete
               </button>
