@@ -95,10 +95,10 @@ const ImagesDashboard = () => {
     }
   };
 
-  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleFolderChange = (value: string) => {
     setFormData({
       ...formData,
-      folder: e.target.value,
+      folder: value,
     });
   };
 

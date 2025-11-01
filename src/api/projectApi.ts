@@ -9,7 +9,9 @@ export const projectApi = {
   async getAll() {
     const { data, error } = await supabase
       .from('projects')
-      .select('*');
+      .select('*')
+      .order('updated_at', { ascending: false });
+    
     
     if (error) throw error;
     return data as ProjectRow[];

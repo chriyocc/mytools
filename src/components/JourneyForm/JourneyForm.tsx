@@ -3,7 +3,7 @@ import type { Database } from '../../types/database.types';
 import FileUpload from '../FileUpload/FileUpload';
 import IconSelector from '../IconSelector/IconSelector';
 import ActionSelector from '../ActionSelector/ActionSelector';
-import ProjectSelector from '../ProjectSelector/ProjectSelector';
+import SearchSelector from '../SearchSelector/SearchSelector';
 import './JourneyForm.css';
 import '../../styles/CommonForm.css'
 import '../../styles/CommonCard.css'
@@ -153,11 +153,21 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
         }
 
         {(formData.action === 'navigate') &&
-          <ProjectSelector
+          <SearchSelector
             value={formData.link || ''}
             onChange={onProjectChange}
+            fetchOptions={async () => {
+              const projects = await projectApi.getAllProjectsTitle();
+              return projects.map(p => ({ label: p.title, value: p.slug }));
+            }}
+            prefix="/projects/"
             placeholder={`project-slug`}
-            fetchProjects={projectApi.getAllProjectsTitle}
+            renderOption={(option) => (
+              <>
+                <span className="project-title">{option.label}</span>
+                <span className="project-slug">{option.value}</span>
+              </>
+            )}
           />
         }
 

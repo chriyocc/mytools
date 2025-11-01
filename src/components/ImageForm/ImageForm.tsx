@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import FileUpload from '../FileUpload/FileUpload';
 import './ImageForm.css';
 import { useImagePreview } from '../../components/ImagePreview/imagePreviewContext.tsx';
-import OptionSelector from '../OptionSelector/OptionSelector.tsx'
+import SearchSelector from '../SearchSelector/SearchSelector.tsx';
 
 interface ImageFormState {
   folder: string;
@@ -15,7 +15,7 @@ interface ImageFormProps {
   formData: ImageFormState;
   onSubmit: (e: React.FormEvent) => void;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFolderChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onFolderChange: (value: string) => void;
   onFileNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCancel: () => void;
   isDisabled: boolean;
@@ -37,14 +37,22 @@ const ImageForm: React.FC<ImageFormProps> = ({
   return (
     <form className="common-form" onSubmit={onSubmit}>
       <div className="common-form-group">
-        <OptionSelector
-          name='folder'
-          options_map={available_folders}
+        <SearchSelector
+          fetchOptions={() => {
+            // Add 'root' option along with existing folders
+            const folders = ['root', ...available_folders.filter(f => f !== 'root')];
+            return folders.map((folder) => ({
+              label: folder === 'root' ? 'root' : folder,
+              value: '',
+            }));
+          }}
           value={formData.folder || ''}
           onChange={onFolderChange}
-          label='Folders'
-          placeholder='Select a folder'
-        ></OptionSelector>
+          placeholder="Select or type a folder name"
+          allowCustomValue={true}
+          emptyMessage="Type to create a new folder"
+        />
+        
         <input
           type="text"
           name="custom_filename"
@@ -69,9 +77,11 @@ const ImageForm: React.FC<ImageFormProps> = ({
           {formData.pending_file && (
             <div className="file-name-group">
               <div
-                  className=" preview-open file-name"
-                  onClick={() => openImagePreview(URL.createObjectURL(formData.pending_file!))}
-                >✓ {formData.pending_file.name} uploaded</div>
+                className="preview-open file-name"
+                onClick={() => openImagePreview(URL.createObjectURL(formData.pending_file!))}
+              >
+                ✓ {formData.pending_file.name} uploaded
+              </div>
             </div>
           )}
         </div>

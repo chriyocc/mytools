@@ -1,19 +1,19 @@
-.project-selector-container {
+.search-selector-container {
   position: relative;
 }
 
-.project-selector-input-wrapper {
+.search-selector-input-wrapper {
   display: flex;
   align-items: center;
   border: 1px solid #ccc;
   border-radius: 4px;
   background: white;
   min-height: 50px;
+  padding: 0.75rem;
 }
 
-.project-selector-prefix {
-  padding-right: 0;
-  padding-left: 0.75rem;
+.search-selector-prefix {
+  padding-right: 0.1rem;
   color: #666;
   font-size: 16px;
   white-space: nowrap;
@@ -21,27 +21,26 @@
   height: 100%; 
 }
 
-.project-selector-input {
+.search-selector-input {
   padding-right: 0.75rem;
   font-size: 16px;
   border: none;
   outline: none;
   transition: border-color 0.2s;
-  padding-left: 0.1rem;
   flex: 1;
 
 }
 
-.project-selector-input:focus {
+.search-selector-input:focus {
   outline: none;
 }
 
-.project-selector-input-wrapper:focus-within {
+.search-selector-input-wrapper:focus-within {
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-.project-selector-dropdown {
+.search-selector-dropdown {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -58,7 +57,7 @@
   z-index: 1000;
 }
 
-.project-selector-item {
+.search-selector-item {
   padding: 0.75rem;
   cursor: pointer;
   display: flex;
@@ -69,23 +68,23 @@
   transition: background-color 0.15s;
 }
 
-.project-selector-item:hover {
+.search-selector-item:hover {
   background-color: #f5f5f5;
 }
 
-.project-title {
+.search-title {
   font-weight: 500;
   color: #333;
   flex: 1;
 }
 
-.project-slug {
+.search-slug {
   font-size: 12px;
   color: #888;
   font-family: monospace;
 }
 
-.project-selector-empty {
+.search-selector-empty {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
