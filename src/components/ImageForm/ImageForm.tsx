@@ -43,7 +43,7 @@ const ImageForm: React.FC<ImageFormProps> = ({
             const folders = ['root', ...available_folders.filter(f => f !== 'root')];
             return folders.map((folder) => ({
               label: folder === 'root' ? 'root' : folder,
-              value: '',
+              value: folder,
             }));
           }}
           value={formData.folder || ''}
