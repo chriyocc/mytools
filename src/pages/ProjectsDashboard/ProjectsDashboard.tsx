@@ -159,6 +159,21 @@ const ProjectsDashboard = () => {
 
       const fileName = file.name;
 
+      if (formData.markdown_content) {
+        const confirmed = await confirm({
+          title: 'Replace Project',
+          message: (
+            <>
+              Are you sure you want to replace <strong>{formData.markdown_file}</strong> with <strong>{fileName}</strong>?
+            </>
+          ),
+          confirmText: 'Replace',
+          type: 'danger',
+        });
+
+        if (!confirmed) return;
+      }
+
       if (type === 'markdown_content') {
         const content = await readFileAsText(file);
         setFormData({

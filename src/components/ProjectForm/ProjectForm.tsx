@@ -132,7 +132,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             accept=".md"
             onChange={onFileUpload('markdown_content')}
             label="Markdown"
-            disabled={isMarkdownUploaded}
+            disabled={isDisabled}
           />
         </div>
         <div>

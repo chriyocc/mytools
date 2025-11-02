@@ -49,8 +49,6 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
   const { openMarkdownPreview } = useMarkdownPreview();
 
   const isMarkdownUploaded = !!formData.markdown_content;
-  const isImage_1_Uploaded = !!formData.image_1;
-  const isImage_2_Uploaded = !!formData.image_2;
 
   const date = `${formData.year}-${String(formData.month_num).padStart(2, '0')}`
 
@@ -209,21 +207,7 @@ const JourneyForm: React.FC<JourneyFormProps> = ({
             accept=".md"
             onChange={onFileUpload('markdown_content')}
             label="Markdown"
-            disabled={(formData.action !== 'popbox') || isMarkdownUploaded}
-          />
-          <FileUpload
-            ref={image1InputRef}
-            accept="image/*"
-            onChange={onFileUpload("image_1")}
-            label="Image 1"
-            disabled={isImage_1_Uploaded}
-          />
-          <FileUpload
-            ref={image2InputRef}
-            accept="image/*"
-            onChange={onFileUpload("image_2")}
-            label="Image 2"
-            disabled={isImage_2_Uploaded}
+            disabled={(formData.action !== 'popbox') || isDisabled}
           />
         </div>
         <div>
