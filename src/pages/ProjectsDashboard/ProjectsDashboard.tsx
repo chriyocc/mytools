@@ -159,22 +159,25 @@ const ProjectsDashboard = () => {
 
       const fileName = file.name;
 
-      if (formData.markdown_content) {
-        const confirmed = await confirm({
-          title: 'Replace Project',
-          message: (
-            <>
-              Are you sure you want to replace <strong>{formData.markdown_file}</strong> with <strong>{fileName}</strong>?
-            </>
-          ),
-          confirmText: 'Replace',
-          type: 'danger',
-        });
-
-        if (!confirmed) return;
-      }
+      
 
       if (type === 'markdown_content') {
+
+        if (formData.markdown_content) {
+          const confirmed = await confirm({
+            title: 'Replace Markdown Content',
+            message: (
+              <>
+                Are you sure you want to replace <strong>{formData.markdown_file}</strong> with <strong>{fileName}</strong>?
+              </>
+            ),
+            confirmText: 'Replace',
+            type: 'danger',
+          });
+
+          if (!confirmed) return;
+        }
+
         const content = await readFileAsText(file);
         setFormData({
           ...formData,
@@ -183,6 +186,22 @@ const ProjectsDashboard = () => {
         });
         toast.success('Markdown file loaded!');
       } else {
+
+        if (formData.image) {
+          const confirmed = await confirm({
+            title: 'Replace Image',
+            message: (
+              <>
+                Are you sure you want to replace <strong>{formData.image_file}</strong> with <strong>{fileName}</strong>?
+              </>
+            ),
+            confirmText: 'Replace',
+            type: 'danger',
+          });
+
+          if (!confirmed) return;
+        }
+
         // Create a blob URL for preview
         const imageUrl = URL.createObjectURL(file);
         setFormData({
@@ -237,7 +256,7 @@ const ProjectsDashboard = () => {
             toast.dismiss(toastId);
           }
         }
-      } else if (formData.image && !formData.image.startsWith('blob:')) {
+      } else if (formData.image && !formData.image.startsWith('blob:') && formData.image !== originalFormDataRef.current.image) {
         // URL was provided (not a blob URL)
         finalImageUrl = formData.image;
         finalImagePublicId = ''; // URLs don't have public IDs
